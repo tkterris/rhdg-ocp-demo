@@ -13,7 +13,8 @@ public class InfinispanService {
 	public RemoteCacheManager getCacheManager() {
 		ConfigurationBuilder cb = new ConfigurationBuilder().addServer()
 				.host("example-infinispan").port(11222)
-				.clientIntelligence(ClientIntelligence.BASIC);
+				//.host("localhost").port(11222)
+				.clientIntelligence(ClientIntelligence.HASH_DISTRIBUTION_AWARE);
 		return new RemoteCacheManager(cb.build());
 	}
 }

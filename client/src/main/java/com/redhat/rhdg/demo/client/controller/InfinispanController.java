@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController(value = "/infinispan")
+@RestController
+@RequestMapping("/infinispan")
 public class InfinispanController {
 	
 	private static final String CACHE = "test-cache";
