@@ -44,6 +44,6 @@ public class InfinispanController {
 
 	@RequestMapping(value = "/removeTask/{key}", method = RequestMethod.POST)
 	public Object executeTask(@PathVariable("key") String key) {
-		return rcm.getCache().execute("removeTask", Map.of("key", key));
+		return rcm.getCache(cache).execute("removeTask", Map.of("key", key));
 	}
 }
