@@ -1,0 +1,13 @@
+apiVersion: infinispan.org/v2alpha1
+kind: Cache
+metadata:
+  name: restricted-cache
+spec:
+  clusterName: example-infinispan
+  name: restricted-cache
+  template: >-
+    <distributed-cache mode="SYNC"    
+    statistics="true"><security><authorization     roles="restricted-admin"/></security>
+    <persistence> <store class="com.redhat.rhdg.demo.server.loader.CustomStore"
+    segmented="false"/> </persistence></distributed-cache>
+

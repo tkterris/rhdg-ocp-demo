@@ -1,0 +1,25 @@
+apiVersion: infinispan.org/v1
+kind: Infinispan
+metadata:
+  name: example-infinispan
+spec:
+  dependencies:
+    volumeClaimName: datagrid-libs
+  security:
+    authorization:
+      roles:
+        - permissions:
+            - ALL
+          name: admin
+        - permissions:
+            - ALL
+          name: admin-restricted
+      enabled: true
+    endpointEncryption:
+      type: None
+      clientCert: None
+    endpointAuthentication: true
+  service:
+    type: DataGrid
+  replicas: 1
+
