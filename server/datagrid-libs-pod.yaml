@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: datagrid-libs-pod
+spec:
+  securityContext:
+    fsGroup: 2000
+  volumes:
+    - name: lib-pv-storage
+      persistentVolumeClaim:
+        claimName: datagrid-libs
+  containers:
+    - name: lib-pv-container
+      image: registry.redhat.io/datagrid/datagrid-8-rhel8:8.3
+      volumeMounts:
+        - mountPath: /tmp/libs
+          name: lib-pv-storage
