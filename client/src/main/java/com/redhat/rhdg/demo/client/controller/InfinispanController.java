@@ -29,6 +29,7 @@ public class InfinispanController {
 	
 	@RequestMapping(value = "/{key}", method = RequestMethod.GET)
 	public Object get(@PathVariable(name = "key") String key) {
+		System.out.println(rcm.getMarshaller().toString());
 		return rcm.getCache(cache).get(key);
 	}
 
