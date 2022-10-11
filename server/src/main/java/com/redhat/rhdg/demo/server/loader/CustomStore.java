@@ -8,16 +8,20 @@ import org.infinispan.persistence.spi.InitializationContext;
 import org.infinispan.persistence.spi.MarshallableEntry;
 import org.infinispan.persistence.spi.MarshallableEntryFactory;
 import org.infinispan.persistence.spi.NonBlockingStore;
+import org.infinispan.protostream.ProtobufUtil;
+import org.infinispan.protostream.SerializationContext;
 
 public class CustomStore<K, V> implements NonBlockingStore<K, V> {
-	
+
 	private Random random;
+	private SerializationContext serializationCtx;
 	private MarshallableEntryFactory<K, V> entryFactory;
 
 	@Override
 	public CompletionStage<Void> start(InitializationContext ctx) {
 		return CompletableFuture.runAsync(() -> {
 			this.random = new Random();
+			this.serializationCtx = ProtobufUtil.newSerializationContext();
 			this.entryFactory = ctx.getMarshallableEntryFactory();
 			return;
 		});
@@ -33,7 +37,14 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 		return CompletableFuture.supplyAsync(() -> {
 			// generates a dummy "value"
 			String valueString = random.nextInt() + "";
-			return entryFactory.create(key, valueString.getBytes());
+			byte[] valueBytes = new byte[0];
+			try {
+				valueBytes = ProtobufUtil.toWrappedByteArray(serializationCtx, valueString);
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			return entryFactory.create(key, valueBytes);
 		});
 	}
 
