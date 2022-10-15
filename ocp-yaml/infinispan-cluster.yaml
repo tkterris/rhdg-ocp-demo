@@ -4,7 +4,7 @@ metadata:
   name: example-infinispan
 spec:
   dependencies:
-    volumeClaimName: datagrid-libs
+    volumeClaimName: infinispan-libs
   security:
     authorization:
       roles:
