@@ -22,7 +22,7 @@ public class InfinispanService {
 				.host("example-infinispan").port(11222)
 				.security()
 					.authentication()
-						.username("developer")
+						.username(username)
 						.password(password)
 				.clientIntelligence(ClientIntelligence.HASH_DISTRIBUTION_AWARE);
 		return new RemoteCacheManager(cb.build());

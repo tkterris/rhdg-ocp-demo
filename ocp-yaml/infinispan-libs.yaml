@@ -2,6 +2,10 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: infinispan-libs
+  labels:
+    app: rhdg-ocp-demo
+    app.kubernetes.io/component: rhdg-ocp-demo
+    app.kubernetes.io/instance: rhdg-ocp-demo
 spec:
   accessModes:
     - ReadWriteMany

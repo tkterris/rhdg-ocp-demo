@@ -1,0 +1,159 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  stringData:
+    authorized.username: authorized
+    authorized.password: Authorized-password!
+    unauthorized.username: unauthorized
+    unauthorized.password: Unauthorized-password!
+    invalid.username: invalid
+    invalid.password: Invalid-password!
+  kind: Secret
+  metadata:
+    labels:
+      app: rhdg-ocp-demo
+      app.kubernetes.io/component: rhdg-ocp-demo
+      app.kubernetes.io/instance: rhdg-ocp-demo
+    name: infinispan-client-credentials
+  type: Opaque
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: rhdg-ocp-demo
+      app.kubernetes.io/component: rhdg-ocp-demo
+      app.kubernetes.io/instance: rhdg-ocp-demo
+    name: rhdg-ocp-demo
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: rhdg-ocp-demo
+      app.kubernetes.io/component: rhdg-ocp-demo
+      app.kubernetes.io/instance: rhdg-ocp-demo
+    name: rhdg-ocp-demo
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: rhdg-ocp-demo:latest
+    postCommit: {}
+    resources: {}
+    source:
+      git:
+        uri: https://github.com/tkterris/rhdg-ocp-demo.git
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_S2I_ARTIFACT_DIRS
+          value: client/target
+        from:
+          kind: ImageStreamTag
+          name: java:openjdk-17-ubi8
+          namespace: openshift
+      type: Source
+    triggers:
+    - github:
+        secret: lEdmq6PwOfGLgnYsG4tA
+      type: GitHub
+    - generic:
+        secret: vVhZizaaKiTg7G7xzgG6
+      type: Generic
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+  status:
+    lastVersion: 0
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"rhdg-ocp-demo:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"rhdg-ocp-demo\")].image"}]'
+    labels:
+      app: rhdg-ocp-demo
+      app.kubernetes.io/component: rhdg-ocp-demo
+      app.kubernetes.io/instance: rhdg-ocp-demo
+    name: rhdg-ocp-demo
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        deployment: rhdg-ocp-demo
+    template:
+      metadata:
+        annotations:
+        labels:
+          deployment: rhdg-ocp-demo
+      spec:
+        containers:
+        - image: ' '
+          name: rhdg-ocp-demo
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          env:
+          - name: INFINISPAN_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: infinispan-client-credentials
+                key: authorized.username
+          - name: INFINISPAN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: infinispan-client-credentials
+                key: authorized.password
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: rhdg-ocp-demo
+      app.kubernetes.io/component: rhdg-ocp-demo
+      app.kubernetes.io/instance: rhdg-ocp-demo
+    name: rhdg-ocp-demo
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: 8443-tcp
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+    selector:
+      deployment: rhdg-ocp-demo
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    labels:
+      app: rhdg-ocp-demo
+      app.kubernetes.io/component: rhdg-ocp-demo
+      app.kubernetes.io/instance: rhdg-ocp-demo
+    name: rhdg-ocp-demo
+  spec:
+    port:
+      targetPort: 8080-tcp
+    to:
+      kind: Service
+      name: rhdg-ocp-demo
+      weight: 100
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+    wildcardPolicy: None
+kind: List
+metadata: {}

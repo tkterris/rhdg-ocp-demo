@@ -1,25 +1,64 @@
-apiVersion: infinispan.org/v1
-kind: Infinispan
-metadata:
-  name: example-infinispan
-spec:
-  dependencies:
-    volumeClaimName: infinispan-libs
-  security:
-    authorization:
-      roles:
-        - permissions:
+apiVersion: v1
+items:
+- apiVersion: v1
+  stringData:
+    identities.yaml: |-
+      credentials:
+        - username: authorized
+          password: Authorized-password!
+          roles:
+          - authorized-role
+        - username: unauthorized
+          password: Unauthorized-password!
+  kind: Secret
+  metadata:
+    name: infinispan-server-credentials
+    labels:
+      app: rhdg-ocp-demo
+      app.kubernetes.io/component: rhdg-ocp-demo
+      app.kubernetes.io/instance: rhdg-ocp-demo
+  type: Opaque
+- apiVersion: infinispan.org/v1
+  kind: Infinispan
+  metadata:
+    name: example-infinispan
+    labels:
+      app: rhdg-ocp-demo
+      app.kubernetes.io/component: rhdg-ocp-demo
+      app.kubernetes.io/instance: rhdg-ocp-demo
+  spec:
+    dependencies:
+      volumeClaimName: infinispan-libs
+    security:
+      authorization:
+        roles:
+          - name: authorized-role
+            permissions:
             - ALL
-          name: admin
-        - permissions:
-            - ALL
-          name: restricted-admin
-      enabled: true
-    endpointEncryption:
-      type: None
-      clientCert: None
-    endpointAuthentication: true
-  service:
-    type: DataGrid
-  replicas: 2
-
+        enabled: true
+      endpointEncryption:
+        type: None
+        clientCert: None
+      endpointAuthentication: true
+      endpointSecretName: infinispan-server-credentials
+    service:
+      type: DataGrid
+    replicas: 2
+- apiVersion: infinispan.org/v2alpha1
+  kind: Cache
+  metadata:
+    name: test-cache
+    labels:
+      app: rhdg-ocp-demo
+      app.kubernetes.io/component: rhdg-ocp-demo
+      app.kubernetes.io/instance: rhdg-ocp-demo
+  spec:
+    clusterName: example-infinispan
+    name: test-cache
+    template: >-
+      <distributed-cache mode="SYNC"    
+      statistics="true"><security><authorization roles="authorized-role"/></security>
+      <persistence> <store class="com.redhat.rhdg.demo.server.loader.CustomStore"
+      segmented="false"/> </persistence></distributed-cache>
+kind: List
+metadata: {}

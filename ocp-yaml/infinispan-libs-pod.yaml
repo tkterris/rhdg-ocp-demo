@@ -2,6 +2,10 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: infinispan-libs-pod
+  labels:
+    app: rhdg-ocp-demo
+    app.kubernetes.io/component: rhdg-ocp-demo
+    app.kubernetes.io/instance: rhdg-ocp-demo
 spec:
   securityContext:
     fsGroup: 2000
