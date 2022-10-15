@@ -8,11 +8,14 @@
 	</parent>
 	<artifactId>rhdg-ocp-demo-server</artifactId>
 
-	
 	<name>rhdg-ocp-demo-server</name>
 	<description>Custom libraries to deploy to the RHDG server nodes</description>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.redhat</groupId>
+			<artifactId>rhdg-ocp-demo-libs</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.infinispan</groupId>
@@ -30,4 +33,33 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<build>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<includes>
+									<include>com.redhat:rhdg-ocp-demo-libs</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+
+	</build>
 </project>

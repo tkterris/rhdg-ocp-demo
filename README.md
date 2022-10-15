@@ -53,7 +53,7 @@ oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/infinispan-libs.yaml
 oc apply -f ocp-yaml/infinispan-libs-pod.yaml
 oc wait --for=condition=ready --timeout=2m pod/infinispan-libs-pod
-oc cp --no-preserve=true server/target/*.jar infinispan-libs-pod:/tmp/libs/
+oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar infinispan-libs-pod:/tmp/libs/
 oc delete pod infinispan-libs-pod
 ```
 - Create the Infinispan cluster and deploy the client application:

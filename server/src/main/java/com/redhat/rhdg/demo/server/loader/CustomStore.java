@@ -11,6 +11,10 @@ import org.infinispan.persistence.spi.NonBlockingStore;
 import org.infinispan.protostream.ProtobufUtil;
 import org.infinispan.protostream.SerializationContext;
 
+import com.redhat.rhdg.demo.model.DemoValue;
+import com.redhat.rhdg.demo.proto.DemoSchemaGenerator;
+import com.redhat.rhdg.demo.proto.DemoSchemaGeneratorImpl;
+
 public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 
 	private Random random;
@@ -22,6 +26,10 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 		return CompletableFuture.runAsync(() -> {
 			this.random = new Random();
 			this.serializationCtx = ProtobufUtil.newSerializationContext();
+			DemoSchemaGenerator generator = new DemoSchemaGeneratorImpl();
+			generator.registerSchema(this.serializationCtx);
+			generator.registerMarshallers(this.serializationCtx);
+			
 			this.entryFactory = ctx.getMarshallableEntryFactory();
 			return;
 		});
@@ -36,12 +44,11 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 	public CompletionStage<MarshallableEntry<K, V>> load(int segment, Object key) {
 		return CompletableFuture.supplyAsync(() -> {
 			// generates a dummy "value"
-			String valueString = random.nextInt() + "";
+			DemoValue value = new DemoValue(random.nextInt() + "");
 			byte[] valueBytes = new byte[0];
 			try {
-				valueBytes = ProtobufUtil.toWrappedByteArray(serializationCtx, valueString);
+				valueBytes = ProtobufUtil.toWrappedByteArray(serializationCtx, value);
 			} catch (Exception e) {
-				// TODO: handle exception
 				e.printStackTrace();
 			}
 			return entryFactory.create(key, valueBytes);

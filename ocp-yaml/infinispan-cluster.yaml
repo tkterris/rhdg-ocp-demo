@@ -56,9 +56,17 @@ items:
     clusterName: example-infinispan
     name: test-cache
     template: >-
-      <distributed-cache mode="SYNC"    
-      statistics="true"><security><authorization roles="authorized-role"/></security>
-      <persistence> <store class="com.redhat.rhdg.demo.server.loader.CustomStore"
-      segmented="false"/> </persistence></distributed-cache>
+      <distributed-cache mode="SYNC" statistics="true">
+          <security>
+              <authorization roles="authorized-role"/>
+          </security>
+          <persistence>
+              <store class="com.redhat.rhdg.demo.server.loader.CustomStore" segmented="false"/>
+          </persistence>
+          <encoding>
+              <key media-type="application/x-protostream"/>
+              <value media-type="application/x-protostream"/>
+          </encoding>
+      </distributed-cache>
 kind: List
 metadata: {}
