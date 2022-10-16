@@ -8,6 +8,6 @@ import org.infinispan.protostream.annotations.AutoProtoSchemaBuilder;
 		schemaFileName = "model.proto",
 		schemaFilePath = "proto/",
 		schemaPackageName = "rhdg_demo")
-public interface DemoSchemaGenerator extends GeneratedSchema {
+public interface DemoInitializer extends GeneratedSchema {
 
 }

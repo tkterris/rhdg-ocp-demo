@@ -11,19 +11,19 @@ items:
   kind: Secret
   metadata:
     labels:
-      app: rhdg-ocp-demo
-      app.kubernetes.io/component: rhdg-ocp-demo
-      app.kubernetes.io/instance: rhdg-ocp-demo
+      app: rhdg-ocp-demo-client
+      app.kubernetes.io/component: rhdg-ocp-demo-client
+      app.kubernetes.io/instance: rhdg-ocp-demo-client
     name: infinispan-client-credentials
   type: Opaque
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     labels:
-      app: rhdg-ocp-demo
-      app.kubernetes.io/component: rhdg-ocp-demo
-      app.kubernetes.io/instance: rhdg-ocp-demo
-    name: rhdg-ocp-demo
+      app: rhdg-ocp-demo-client
+      app.kubernetes.io/component: rhdg-ocp-demo-client
+      app.kubernetes.io/instance: rhdg-ocp-demo-client
+    name: rhdg-ocp-demo-client
   spec:
     lookupPolicy:
       local: false
@@ -33,16 +33,16 @@ items:
   kind: BuildConfig
   metadata:
     labels:
-      app: rhdg-ocp-demo
-      app.kubernetes.io/component: rhdg-ocp-demo
-      app.kubernetes.io/instance: rhdg-ocp-demo
-    name: rhdg-ocp-demo
+      app: rhdg-ocp-demo-client
+      app.kubernetes.io/component: rhdg-ocp-demo-client
+      app.kubernetes.io/instance: rhdg-ocp-demo-client
+    name: rhdg-ocp-demo-client
   spec:
     nodeSelector: null
     output:
       to:
         kind: ImageStreamTag
-        name: rhdg-ocp-demo:latest
+        name: rhdg-ocp-demo-client:latest
     postCommit: {}
     resources: {}
     source:
@@ -75,26 +75,26 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"rhdg-ocp-demo:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"rhdg-ocp-demo\")].image"}]'
+      image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"rhdg-ocp-demo-client:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"rhdg-ocp-demo-client\")].image"}]'
     labels:
-      app: rhdg-ocp-demo
-      app.kubernetes.io/component: rhdg-ocp-demo
-      app.kubernetes.io/instance: rhdg-ocp-demo
-    name: rhdg-ocp-demo
+      app: rhdg-ocp-demo-client
+      app.kubernetes.io/component: rhdg-ocp-demo-client
+      app.kubernetes.io/instance: rhdg-ocp-demo-client
+    name: rhdg-ocp-demo-client
   spec:
     replicas: 1
     selector:
       matchLabels:
-        deployment: rhdg-ocp-demo
+        deployment: rhdg-ocp-demo-client
     template:
       metadata:
         annotations:
         labels:
-          deployment: rhdg-ocp-demo
+          deployment: rhdg-ocp-demo-client
       spec:
         containers:
         - image: ' '
-          name: rhdg-ocp-demo
+          name: rhdg-ocp-demo-client
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -118,10 +118,10 @@ items:
       openshift.io/generated-by: OpenShiftNewApp
     creationTimestamp: null
     labels:
-      app: rhdg-ocp-demo
-      app.kubernetes.io/component: rhdg-ocp-demo
-      app.kubernetes.io/instance: rhdg-ocp-demo
-    name: rhdg-ocp-demo
+      app: rhdg-ocp-demo-client
+      app.kubernetes.io/component: rhdg-ocp-demo-client
+      app.kubernetes.io/instance: rhdg-ocp-demo-client
+    name: rhdg-ocp-demo-client
   spec:
     ports:
     - name: 8080-tcp
@@ -133,23 +133,23 @@ items:
       protocol: TCP
       targetPort: 8443
     selector:
-      deployment: rhdg-ocp-demo
+      deployment: rhdg-ocp-demo-client
 - apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
     annotations:
       openshift.io/host.generated: "true"
     labels:
-      app: rhdg-ocp-demo
-      app.kubernetes.io/component: rhdg-ocp-demo
-      app.kubernetes.io/instance: rhdg-ocp-demo
-    name: rhdg-ocp-demo
+      app: rhdg-ocp-demo-client
+      app.kubernetes.io/component: rhdg-ocp-demo-client
+      app.kubernetes.io/instance: rhdg-ocp-demo-client
+    name: rhdg-ocp-demo-client
   spec:
     port:
       targetPort: 8080-tcp
     to:
       kind: Service
-      name: rhdg-ocp-demo
+      name: rhdg-ocp-demo-client
       weight: 100
     tls:
       termination: edge

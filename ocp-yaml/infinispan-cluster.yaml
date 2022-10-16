@@ -14,18 +14,18 @@ items:
   metadata:
     name: infinispan-server-credentials
     labels:
-      app: rhdg-ocp-demo
-      app.kubernetes.io/component: rhdg-ocp-demo
-      app.kubernetes.io/instance: rhdg-ocp-demo
+      app: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/component: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/instance: rhdg-ocp-demo-infinispan
   type: Opaque
 - apiVersion: infinispan.org/v1
   kind: Infinispan
   metadata:
-    name: example-infinispan
+    name: rhdg-ocp-demo-infinispan
     labels:
-      app: rhdg-ocp-demo
-      app.kubernetes.io/component: rhdg-ocp-demo
-      app.kubernetes.io/instance: rhdg-ocp-demo
+      app: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/component: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/instance: rhdg-ocp-demo-infinispan
   spec:
     dependencies:
       volumeClaimName: infinispan-libs
@@ -49,11 +49,11 @@ items:
   metadata:
     name: test-cache
     labels:
-      app: rhdg-ocp-demo
-      app.kubernetes.io/component: rhdg-ocp-demo
-      app.kubernetes.io/instance: rhdg-ocp-demo
+      app: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/component: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/instance: rhdg-ocp-demo-infinispan
   spec:
-    clusterName: example-infinispan
+    clusterName: rhdg-ocp-demo-infinispan
     name: test-cache
     template: >-
       <distributed-cache mode="SYNC" statistics="true">

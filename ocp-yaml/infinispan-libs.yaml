@@ -1,14 +1,39 @@
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: infinispan-libs
-  labels:
-    app: rhdg-ocp-demo
-    app.kubernetes.io/component: rhdg-ocp-demo
-    app.kubernetes.io/instance: rhdg-ocp-demo
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 100Mi
+items:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: infinispan-libs
+    labels:
+      app: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/component: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/instance: rhdg-ocp-demo-infinispan
+  spec:
+    accessModes:
+      - ReadWriteMany
+    resources:
+      requests:
+        storage: 100Mi
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    name: infinispan-libs-pod
+    labels:
+      app: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/component: rhdg-ocp-demo-infinispan
+      app.kubernetes.io/instance: rhdg-ocp-demo-infinispan
+  spec:
+    securityContext:
+      fsGroup: 2000
+    volumes:
+      - name: lib-pv-storage
+        persistentVolumeClaim:
+          claimName: infinispan-libs
+    containers:
+      - name: lib-pv-container
+        image: registry.redhat.io/datagrid/datagrid-8-rhel8:1.3
+        volumeMounts:
+          - mountPath: /tmp/libs
+            name: lib-pv-storage
+kind: List
+metadata: {}

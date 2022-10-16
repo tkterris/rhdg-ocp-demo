@@ -40,32 +40,36 @@ export ADMINPASSWORD=f5tRY-9RxxL-2TEMT-CykXc
 
 oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc new-project rhdg-ocp-demo
-
-mvn clean install
 ```
 
 ### Deployment steps
 
-- Load the compiled server JAR onto an OpenShift PVC:
+- Start the build and deploy of the client application
 ```
-# The following steps (and the PVC reference in ocp-yaml/infinispan-cluster.yaml) are used to deploy custom code
+oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
+oc apply -f ocp-yaml/client-application.yaml
+```
+- Create the RHDG cluster
+```
+# Build the server JAR 
+mvn clean install
+
+# Copy the server JAR to a PV
+# This PV will be mounted on each RHDG pod
 oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/infinispan-libs.yaml
-oc apply -f ocp-yaml/infinispan-libs-pod.yaml
 oc wait --for=condition=ready --timeout=2m pod/infinispan-libs-pod
 oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar infinispan-libs-pod:/tmp/libs/
 oc delete pod infinispan-libs-pod
-```
-- Create the Infinispan cluster and deploy the client application:
-```
+
+# Create the Infinispan cluster
 oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/infinispan-cluster.yaml
-oc apply -f ocp-yaml/client-application.yaml
 ```
 
 ### Testing
 
-The client application will have a route exposed, with a swagger UI available at `$ROUTE_URL/swagger-ui.html`. 
+The client application will have a route exposed, with a swagger UI available at `/swagger-ui.html`. 
 
 - Basic cache connectivity and functionality can be tested using the POST, GET, and DELETE HTTP methods on the `/infinispan/{key}` endpoint
 - If a GET is performed on a key that hasn't been stored, the custom cache loader is used to generate a random value
@@ -80,13 +84,17 @@ Cache nodes can be stopped, started, and scaled by changing the `replicas` param
 
 ### Cleanup
 
-All resources in the project created for the demo can be deleted with:
+Resources in the project created for the demo can be deleted with:
 
 ```
-oc delete all,secret,infinispan,cache -l app=rhdg-ocp-demo
+# Delete the client application:
+oc delete all,secret -l app=rhdg-ocp-demo-client
+
+# Delete the Infinispan cluster:
+oc delete all,secret,infinispan,cache -l app=rhdg-ocp-demo-infinispan
 ```
 
-The project can be deleted with:
+The entire project can be deleted with:
 
 ```
 oc delete project rhdg-ocp-demo
@@ -99,8 +107,8 @@ oc delete project rhdg-ocp-demo
 Some issues were encountered using CRC, here are the workarounds:
 - Infinispan cluster failing to start, due to insufficient memory.
   - Increase memory config: `crc config set memory 20000`
-- DNS lookups for routes don't work in Chromium browsers
-  - Use Firefox
+- DNS lookups for routes don't work in browsers with browser-specific DNS (e.g. Brave)
+  - Change browser DNS server to the system-provided DNS server (which contains entries for routes)
 - PVC creation failing due to CRC issue preventing PVs from being recycled in OpenShift Local
   - Set the following label: `oc label  --overwrite ns openshift-infra  pod-security.kubernetes.io/enforce=privileged`
   - Manually recycle failed PVs using `oc patch pv/$PV_NAME --type json -p '[{ "op": "remove", "path": "/spec/claimRef" }]'`
@@ -112,4 +120,6 @@ Application client code derived from <https://github.com/ngecom/openshiftSpringB
 [OpenShift Local](https://developers.redhat.com/products/openshift-local/overview)
 
 [RHDG Operator Guide](https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.3/html/data_grid_operator_guide/index)
+
+[RHDG Operator custom code deployment](https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.3/guide/1cfa1bfa-697d-4fda-9e0a-8c3e2b99f815)
 

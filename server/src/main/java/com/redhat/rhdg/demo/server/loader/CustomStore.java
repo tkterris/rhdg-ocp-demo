@@ -12,8 +12,8 @@ import org.infinispan.protostream.ProtobufUtil;
 import org.infinispan.protostream.SerializationContext;
 
 import com.redhat.rhdg.demo.model.DemoValue;
-import com.redhat.rhdg.demo.proto.DemoSchemaGenerator;
-import com.redhat.rhdg.demo.proto.DemoSchemaGeneratorImpl;
+import com.redhat.rhdg.demo.proto.DemoInitializer;
+import com.redhat.rhdg.demo.proto.DemoInitializerImpl;
 
 public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 
@@ -26,9 +26,9 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 		return CompletableFuture.runAsync(() -> {
 			this.random = new Random();
 			this.serializationCtx = ProtobufUtil.newSerializationContext();
-			DemoSchemaGenerator generator = new DemoSchemaGeneratorImpl();
-			generator.registerSchema(this.serializationCtx);
-			generator.registerMarshallers(this.serializationCtx);
+			DemoInitializer initializer = new DemoInitializerImpl();
+			initializer.registerSchema(this.serializationCtx);
+			initializer.registerMarshallers(this.serializationCtx);
 			
 			this.entryFactory = ctx.getMarshallableEntryFactory();
 			return;
