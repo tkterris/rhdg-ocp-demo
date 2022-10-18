@@ -25,6 +25,8 @@ items:
   spec:
     securityContext:
       fsGroup: 2000
+      seccompProfile:
+        type: RuntimeDefault
     volumes:
       - name: lib-pv-storage
         persistentVolumeClaim:

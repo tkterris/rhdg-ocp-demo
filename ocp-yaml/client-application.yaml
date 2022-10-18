@@ -111,6 +111,14 @@ items:
               secretKeyRef:
                 name: infinispan-client-credentials
                 key: authorized.password
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
 - apiVersion: v1
   kind: Service
   metadata:

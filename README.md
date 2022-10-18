@@ -30,7 +30,7 @@ The following features are explored in this application:
 
 ### Setup
 
-Build the project locally (creating the JAR which will be deployed to the RHDG cluster), populate environment variables (replacing as appropriate), and create the project:
+Populate environment variables (replacing as appropriate) and create the project:
 ```
 export OCP_SERVER_URL=https://api.crc.testing:6443
 export DEVUSER=developer
@@ -91,7 +91,7 @@ Resources in the project created for the demo can be deleted with:
 oc delete all,secret -l app=rhdg-ocp-demo-client
 
 # Delete the Infinispan cluster:
-oc delete all,secret,infinispan,cache -l app=rhdg-ocp-demo-infinispan
+oc delete all,secret,pvc,infinispan,cache -l app=rhdg-ocp-demo-infinispan
 ```
 
 The entire project can be deleted with:
