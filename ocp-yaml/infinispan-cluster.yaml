@@ -12,23 +12,23 @@ items:
         - username: unauthorized
           password: Unauthorized-password!
   metadata:
-    name: infinispan-server-credentials
+    name: operator-secret
     labels:
-      app: rhdg-ocp-demo-infinispan
-      app.kubernetes.io/component: rhdg-ocp-demo-infinispan
-      app.kubernetes.io/instance: rhdg-ocp-demo-infinispan
+      app: infinispan-operator
+      app.kubernetes.io/component: infinispan-operator
+      app.kubernetes.io/instance: infinispan-operator
   type: Opaque
 - apiVersion: infinispan.org/v1
   kind: Infinispan
   metadata:
-    name: rhdg-ocp-demo-infinispan
+    name: infinispan-cluster
     labels:
-      app: rhdg-ocp-demo-infinispan
-      app.kubernetes.io/component: rhdg-ocp-demo-infinispan
-      app.kubernetes.io/instance: rhdg-ocp-demo-infinispan
+      app: infinispan-operator
+      app.kubernetes.io/component: infinispan-operator
+      app.kubernetes.io/instance: infinispan-operator
   spec:
     dependencies:
-      volumeClaimName: infinispan-libs
+      volumeClaimName: server-jar-pvc
     security:
       authorization:
         roles:
@@ -40,7 +40,7 @@ items:
         type: None
         clientCert: None
       endpointAuthentication: true
-      endpointSecretName: infinispan-server-credentials
+      endpointSecretName: operator-secret
     service:
       type: DataGrid
     replicas: 2
@@ -49,11 +49,11 @@ items:
   metadata:
     name: test-cache
     labels:
-      app: rhdg-ocp-demo-infinispan
-      app.kubernetes.io/component: rhdg-ocp-demo-infinispan
-      app.kubernetes.io/instance: rhdg-ocp-demo-infinispan
+      app: infinispan-operator
+      app.kubernetes.io/component: infinispan-operator
+      app.kubernetes.io/instance: infinispan-operator
   spec:
-    clusterName: rhdg-ocp-demo-infinispan
+    clusterName: infinispan-cluster
     name: test-cache
     template: >-
       <distributed-cache mode="SYNC" statistics="true">

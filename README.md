@@ -50,7 +50,7 @@ oc new-project rhdg-ocp-demo
 oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/client-application.yaml
 ```
-- Create the RHDG cluster, either using the Operator or Helm (note that the Helm chart does not support custom code):
+- Create the Infinispan cluster, either using the Operator or Helm (note that the Helm chart does not support custom code):
 ```
 ## Via the Data Grid Operator:
 
@@ -61,9 +61,9 @@ mvn clean install
 # This PV will be mounted on each RHDG pod
 oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/infinispan-libs.yaml
-oc wait --for=condition=ready --timeout=2m pod/infinispan-libs-pod
-oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar infinispan-libs-pod:/tmp/libs/
-oc delete pod infinispan-libs-pod
+oc wait --for=condition=ready --timeout=2m pod/server-jar-pod
+oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar server-jar-pod:/tmp/libs/
+oc delete pod server-jar-pod
 
 # Create the Infinispan cluster
 oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
@@ -75,7 +75,9 @@ oc apply -f ocp-yaml/infinispan-cluster.yaml
 # Create the secret used for RHDG credentials
 oc apply -f ocp-yaml/helm-secret.yaml
 # Install the Helm chart
-helm install rhdg-ocp-demo-infinispan openshift-helm-charts/redhat-data-grid --values ocp-yaml/helm-chart.yaml
+oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
+helm install infinispan-cluster openshift-helm-charts/redhat-data-grid \
+    --values ocp-yaml/helm-chart.yaml
 ```
 
 ### Testing
@@ -98,18 +100,20 @@ with a new `deploy.replicas` parameter.
 
 ### Cleanup
 
-Resources in the project created for the demo can be deleted with:
+Resources in the project created for the demo can be deleted with these commands:
 
 ```
 # Delete the client application:
-oc delete all,secret -l app=rhdg-ocp-demo-client
-
+oc delete all,secret -l app=client
+```
+```
 # Delete the Infinispan cluster installed via the Operator:
-oc delete all,secret,pvc,infinispan,cache -l app=rhdg-ocp-demo-infinispan
-
+oc delete all,secret,pvc,infinispan,cache -l app=infinispan-operator
+```
+```
 # Delete the Infinispan cluster installed via Helm:
-oc delete all,secret,pvc,infinispan,cache -l app=rhdg-ocp-demo-infinispan
-helm uninstall rhdg-ocp-demo-infinispan
+helm uninstall infinispan-cluster
+oc delete secret -l app=infinispan-helm
 ```
 
 The entire project can be deleted with:
