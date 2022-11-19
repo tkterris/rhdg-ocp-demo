@@ -47,7 +47,6 @@ oc new-project rhdg-ocp-demo
 
 - Start the build and deploy of the client application:
 ```
-oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/client-application.yaml
 ```
 - Create the Infinispan cluster, either using the Operator or Helm (note that the Helm chart does not support custom code):
@@ -63,10 +62,10 @@ oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/operator-server-jar.yaml
 oc wait --for=condition=ready --timeout=2m pod/server-jar-pod
 oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar server-jar-pod:/tmp/libs/
+oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc delete pod server-jar-pod
 
 # Create the Infinispan cluster
-oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/operator-resources.yaml
 ```
 ```
@@ -78,6 +77,7 @@ oc apply -f ocp-yaml/helm-secret.yaml
 oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
 helm install infinispan-cluster openshift-helm-charts/redhat-data-grid \
     --values ocp-yaml/helm-chart.yaml
+oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 ```
 
 ### Testing
@@ -112,7 +112,9 @@ oc delete all,secret,pvc,infinispan,cache -l app=infinispan-operator
 ```
 ```
 # Delete the Infinispan cluster installed via Helm:
+oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
 helm uninstall infinispan-cluster
+oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc delete secret -l app=infinispan-helm
 ```
 
