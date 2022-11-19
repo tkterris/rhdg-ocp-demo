@@ -1,0 +1,103 @@
+deploy:
+  container:
+    extraJvmOpts: ''
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    storage:
+      ephemeral: false
+      size: 1Gi
+      storageClassName: ''
+  expose:
+    annotations: []
+    host: ''
+    nodePort: 0
+    type: Route
+  infinispan:
+    cacheContainer:
+      distributedCache:
+        name: "test-cache"
+        mode: "SYNC"
+        owners: "2"
+        statistics: "true"
+        encoding:
+          mediaType: "application/x-protostream"
+        security:
+          authorization:
+            roles: "authorized-role"
+      name: default
+      transport:
+        cluster: '${infinispan.cluster.name:cluster}'
+        node-name: '${infinispan.node.name:}'
+        stack: kubernetes
+      security:
+        authorization:
+          roles:
+            authorized-role:
+              role:
+                permissions:
+                  - "ALL"
+    server:
+      endpoints:
+        - securityRealm: default
+          socketBinding: default
+        - connectors:
+            rest:
+              restConnector:
+                authentication:
+                  mechanisms: BASIC
+          securityRealm: metrics
+          socketBinding: metrics
+      interfaces:
+        - inetAddress:
+            value: '${infinispan.bind.address:127.0.0.1}'
+          name: public
+      security:
+        securityRealms:
+          - name: default
+            propertiesRealm:
+              groupProperties:
+                path: groups.properties
+              groupsAttribute: Roles
+              userProperties:
+                path: users.properties
+          - name: metrics
+            propertiesRealm:
+              groupProperties:
+                path: metrics-groups.properties
+                relativeTo: infinispan.server.config.path
+              groupsAttribute: Roles
+              userProperties:
+                path: metrics-users.properties
+                relativeTo: infinispan.server.config.path
+      socketBindings:
+        defaultInterface: public
+        portOffset: '${infinispan.socket.binding.port-offset:0}'
+        socketBinding:
+          - name: default
+            port: 11222
+          - name: metrics
+            port: 11223
+  logging:
+    categories:
+      - category: com.arjuna
+        level: warn
+      - category: io.netty.handler.ssl.ApplicationProtocolNegotiationHandler
+        level: error
+  makeDataDirWritable: false
+  nameOverride: ''
+  replicas: 2
+  resourceLabels:
+    - key: app
+      value: rhdg-ocp-demo-infinispan
+  security:
+    authentication: true
+    secretName: 'helm-secret'
+images:
+  initContainer: registry.access.redhat.com/ubi8-micro
+  server: registry.redhat.io/datagrid/datagrid-8-rhel8:latest
+
