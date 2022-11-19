@@ -26,7 +26,8 @@ The following features are explored in this application:
 ### Prerequisites
 
 - Access to an OpenShift cluster (for local testing, [OpenShift Local](https://developers.redhat.com/products/openshift-local/overview) is recommended)
-- Red Hat Data Grid Operator is installed
+- The Data Grid Operator is installed
+- Helm is installed and the chart repository at <https://charts.openshift.io/> has been added: `helm repo add openshift-helm-charts https://charts.openshift.io/`
 
 ### Setup
 
@@ -44,13 +45,15 @@ oc new-project rhdg-ocp-demo
 
 ### Deployment steps
 
-- Start the build and deploy of the client application
+- Start the build and deploy of the client application:
 ```
 oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/client-application.yaml
 ```
-- Create the RHDG cluster
+- Create the RHDG cluster, either using the Operator or Helm (note that the Helm chart does not support custom code):
 ```
+## Via the Data Grid Operator:
+
 # Build the server JAR 
 mvn clean install
 
@@ -66,21 +69,32 @@ oc delete pod infinispan-libs-pod
 oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc apply -f ocp-yaml/infinispan-cluster.yaml
 ```
+```
+## Via Helm:
+
+# Create the secret used for RHDG credentials
+oc apply -f ocp-yaml/helm-secret.yaml
+# Install the Helm chart
+helm install rhdg-ocp-demo-infinispan openshift-helm-charts/redhat-data-grid --values ocp-yaml/helm-chart.yaml
+```
 
 ### Testing
 
 The client application will have a route exposed, with a swagger UI available at `/swagger-ui.html`. 
 
+- Cache connection information can be viewed in the `InfinispanService.java` file in the `client` project
 - Basic cache connectivity and functionality can be tested using the POST, GET, and DELETE HTTP methods on the `/infinispan/{key}` endpoint
 - If a GET is performed on a key that hasn't been stored, the custom cache loader is used to generate a random value
-- Cache connection information can be viewed in the `InfinispanService.java` file in the `client` project
+  - Note: the RHDG Helm chart does not support deploying custom code, so the above will only work when deploying RHDG via the Operator
 - A simple remote task can be executed via the `/infinispan/removeTask/{key}` endpoint
+  - Note: the RHDG Helm chart does not support deploying custom code, so the above will only work when deploying RHDG via the Operator
 
 To test with a user that fails authentication, change `INFINISPAN_USER` and `INFINISPAN_PASSWORD` in the deployment environment variables to 
 use the `invalid.user` and `invalid.password` value from the secret. To test a user that authenticates but is unauthorized, use
 `unauthorized.user` and `unauthorized.password`.
 
-Cache nodes can be stopped, started, and scaled by changing the `replicas` parameter of the Data Grid operator.
+Cache nodes can be stopped, started, and scaled by changing the `replicas` parameter of the Data Grid operator or upgrading the Helm release 
+with a new `deploy.replicas` parameter.
 
 ### Cleanup
 
@@ -90,8 +104,12 @@ Resources in the project created for the demo can be deleted with:
 # Delete the client application:
 oc delete all,secret -l app=rhdg-ocp-demo-client
 
-# Delete the Infinispan cluster:
+# Delete the Infinispan cluster installed via the Operator:
 oc delete all,secret,pvc,infinispan,cache -l app=rhdg-ocp-demo-infinispan
+
+# Delete the Infinispan cluster installed via Helm:
+oc delete all,secret,pvc,infinispan,cache -l app=rhdg-ocp-demo-infinispan
+helm uninstall rhdg-ocp-demo-infinispan
 ```
 
 The entire project can be deleted with:
@@ -122,4 +140,6 @@ Application client code derived from <https://github.com/ngecom/openshiftSpringB
 [RHDG Operator Guide](https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.3/html/data_grid_operator_guide/index)
 
 [RHDG Operator custom code deployment](https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.3/guide/1cfa1bfa-697d-4fda-9e0a-8c3e2b99f815)
+
+[Building and deploying Data Grid clusters with Helm](https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.3/html-single/building_and_deploying_data_grid_clusters_with_helm/index)
 
