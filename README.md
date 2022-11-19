@@ -60,14 +60,14 @@ mvn clean install
 # Copy the server JAR to a PV
 # This PV will be mounted on each RHDG pod
 oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
-oc apply -f ocp-yaml/infinispan-libs.yaml
+oc apply -f ocp-yaml/operator-server-jar.yaml
 oc wait --for=condition=ready --timeout=2m pod/server-jar-pod
 oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar server-jar-pod:/tmp/libs/
 oc delete pod server-jar-pod
 
 # Create the Infinispan cluster
 oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
-oc apply -f ocp-yaml/infinispan-cluster.yaml
+oc apply -f ocp-yaml/operator-resources.yaml
 ```
 ```
 ## Via Helm:
