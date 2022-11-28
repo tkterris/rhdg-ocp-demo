@@ -27,8 +27,7 @@ public class RemoveTask implements ServerTask<String> {
 	}
 
 	public TaskExecutionMode getExecutionMode() {
-		// has to be ONE_NODE until JDG-3394 is fixed (RHDG 8.4)
-		return TaskExecutionMode.ONE_NODE;
+		return TaskExecutionMode.ALL_NODES;
 	}
 
 }
