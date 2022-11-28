@@ -96,7 +96,8 @@ use the `invalid.user` and `invalid.password` value from the secret. To test a u
 `unauthorized.user` and `unauthorized.password`.
 
 Cache nodes can be stopped, started, and scaled by changing the `replicas` parameter of the Data Grid operator or upgrading the Helm release 
-with a new `deploy.replicas` parameter.
+with a new `deploy.replicas` parameter. The RHDG admin console can be accessed via an exposed `infinispan-cluster` route, with the username 
+`authorized` and password `Authorized-password!` (the same credentials used by the client application to connect to RHDG).
 
 ### Cleanup
 
@@ -109,6 +110,7 @@ oc delete all,secret -l app=client
 ```
 # Delete the Infinispan cluster installed via the Operator:
 oc delete all,secret,pvc,infinispan,cache -l app=infinispan-operator
+oc delete pvc -l app=infinispan-pod
 ```
 ```
 # Delete the Infinispan cluster installed via Helm:
@@ -116,6 +118,7 @@ oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
 helm uninstall infinispan-cluster
 oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc delete secret -l app=infinispan-helm
+oc delete pvc -l app=infinispan-pod
 ```
 
 The entire project can be deleted with:
