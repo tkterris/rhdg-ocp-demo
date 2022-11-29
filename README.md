@@ -110,7 +110,6 @@ oc delete all,secret -l app=client
 ```
 # Delete the Infinispan cluster installed via the Operator:
 oc delete all,secret,pvc,infinispan,cache -l app=infinispan-operator
-oc delete pvc -l app=infinispan-pod
 ```
 ```
 # Delete the Infinispan cluster installed via Helm:
