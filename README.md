@@ -49,23 +49,19 @@ oc new-project rhdg-ocp-demo
 ```
 oc apply -f ocp-yaml/client-application.yaml
 ```
+- Create an HTTPD server to provide the server JAR:
+```
+mvn clean install
+oc new-app httpd:latest~https://github.com/sclorg/httpd-ex.git
+sleep 20s
+HTTPD_POD=$(oc get po -l deployment=httpd-ex -o custom-columns=NAME:metadata.name --no-headers)
+oc wait --for=condition=ready --timeout=2m pod/$HTTPD_POD
+oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar $HTTPD_POD:/opt/app-root/src/server.jar
+```
 - Create the Infinispan cluster, either using the Operator or Helm (note that the Helm chart does not support custom code):
 ```
 ## Via the Data Grid Operator:
 
-# Build the server JAR 
-mvn clean install
-
-# Copy the server JAR to a PV
-# This PV will be mounted on each RHDG pod
-oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
-oc apply -f ocp-yaml/operator-server-jar.yaml
-oc wait --for=condition=ready --timeout=2m pod/server-jar-pod
-oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar server-jar-pod:/tmp/libs/
-oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
-oc delete pod server-jar-pod
-
-# Create the Infinispan cluster
 oc apply -f ocp-yaml/operator-resources.yaml
 ```
 ```
@@ -87,9 +83,9 @@ The client application will have a route exposed, with a swagger UI available at
 - Cache connection information can be viewed in the `InfinispanService.java` file in the `client` project
 - Basic cache connectivity and functionality can be tested using the POST, GET, and DELETE HTTP methods on the `/infinispan/{key}` endpoint
 - If a GET is performed on a key that hasn't been stored, the custom cache loader is used to generate a random value
-  - Note: the RHDG Helm chart does not support deploying custom code, so the above will only work when deploying RHDG via the Operator
+  - Note: the RHDG Helm chart has not yet been updated to support custom code, so the above will only work when deploying RHDG via the Operator
 - A simple remote task can be executed via the `/infinispan/removeTask/{key}` endpoint
-  - Note: the RHDG Helm chart does not support deploying custom code, so the above will only work when deploying RHDG via the Operator
+  - Note: the RHDG Helm chart has not yet been updated to support custom code, so the above will only work when deploying RHDG via the Operator
 
 To test with a user that fails authentication, change `INFINISPAN_USER` and `INFINISPAN_PASSWORD` in the deployment environment variables to 
 use the `invalid.user` and `invalid.password` value from the secret. To test a user that authenticates but is unauthorized, use
@@ -106,6 +102,10 @@ Resources in the project created for the demo can be deleted with these commands
 ```
 # Delete the client application:
 oc delete all,secret -l app=client
+```
+```
+# Delete the HTTPD server for server.jar:
+oc delete all -l app=httpd-ex
 ```
 ```
 # Delete the Infinispan cluster installed via the Operator:
@@ -138,6 +138,13 @@ Some issues were encountered using CRC, here are the workarounds:
 - PVC creation failing due to CRC issue preventing PVs from being recycled in OpenShift Local
   - Set the following label: `oc label  --overwrite ns openshift-infra  pod-security.kubernetes.io/enforce=privileged`
   - Manually recycle failed PVs using `oc patch pv/$PV_NAME --type json -p '[{ "op": "remove", "path": "/spec/claimRef" }]'`
+
+### Production Considerations
+
+There are a number of design decisions that were made so that this POC would be simple and self-contained, which wouldn't necessarily be appropriate for a production application. These include:
+- The application and configuration is all added to openshift via "oc apply", rather than a CI/CD pipeline 
+- The server JAR artifact should be stored in an artifact repository (e.g. JFrog), rather than an HTTPD container
+- The Cache configuration would likely be part of the client application source code, and updated in the RHDG cluster as part of the client CI/CD deployment
 
 ### Links
 

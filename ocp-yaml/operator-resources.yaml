@@ -28,7 +28,8 @@ items:
       app.kubernetes.io/instance: infinispan-operator
   spec:
     dependencies:
-      volumeClaimName: server-jar-pvc
+      artifacts:
+        - url: http://httpd-ex:8080/server.jar
     security:
       authorization:
         roles:

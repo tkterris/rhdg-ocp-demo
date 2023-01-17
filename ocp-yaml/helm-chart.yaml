@@ -12,6 +12,8 @@ deploy:
       ephemeral: false
       size: 1Gi
       storageClassName: ''
+    #TODO the following is nonfunctional until the Helm chart repository is updated to use the latest Infinispan chart
+    libraries: httpd-ex:8080/server.jar
   expose:
     annotations: []
     host: ''
