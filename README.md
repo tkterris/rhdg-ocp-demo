@@ -46,8 +46,6 @@ Populate environment variables (replacing as appropriate) and create the project
 export OCP_SERVER_URL=https://api.crc.testing:6443
 export DEVUSER=developer
 export DEVPASSWORD=developer
-export ADMINUSER=kubeadmin
-export ADMINPASSWORD=f5tRY-9RxxL-2TEMT-CykXc
 
 oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc new-project rhdg-ocp-demo
@@ -64,9 +62,11 @@ oc apply -f ocp-yaml/client-application.yaml
 mvn clean install
 oc new-app httpd:latest~https://github.com/sclorg/httpd-ex.git
 sleep 20s
-HTTPD_POD=$(oc get po -l deployment=httpd-ex -o custom-columns=NAME:metadata.name --no-headers)
+HTTPD_POD=$(oc get po -l deployment=httpd-ex \
+    -o custom-columns=NAME:metadata.name --no-headers)
 oc wait --for=condition=ready --timeout=2m pod/$HTTPD_POD
-oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar $HTTPD_POD:/opt/app-root/src/server.jar
+oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar \
+    $HTTPD_POD:/opt/app-root/src/server.jar
 ```
 - Create the Infinispan cluster, either using the Operator or Helm:
 ```
@@ -80,10 +80,8 @@ oc apply -f ocp-yaml/operator-resources.yaml
 # Create the secret used for RHDG credentials
 oc apply -f ocp-yaml/helm-secret.yaml
 # Install the Helm chart
-oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
 helm install infinispan-cluster openshift-helm-charts/redhat-data-grid \
     --values ocp-yaml/helm-chart.yaml
-oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 ```
 
 ### Testing
@@ -119,15 +117,12 @@ oc delete all -l app=httpd-ex
 ```
 ```
 # Delete the Infinispan cluster installed via the Operator:
-oc delete all,secret,pvc,infinispan,cache -l app=infinispan-operator
+oc delete all,secret,infinispan,cache -l app=infinispan-operator
 ```
 ```
 # Delete the Infinispan cluster installed via Helm:
-oc login -u $ADMINUSER -p $ADMINPASSWORD $OCP_SERVER_URL
 helm uninstall infinispan-cluster
-oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc delete secret -l app=infinispan-helm
-oc delete pvc -l app=infinispan-pod
 ```
 
 The entire project can be deleted with:
@@ -140,7 +135,6 @@ oc delete project rhdg-ocp-demo
 
 ### Debugging
 
-Some issues were encountered using CRC, here are the workarounds:
 - Infinispan cluster failing to start, due to insufficient memory.
   - Increase memory config: `crc config set memory 20000`
 - DNS lookups for routes don't work in browsers with browser-specific DNS (e.g. Brave)
@@ -155,6 +149,7 @@ There are a number of design decisions that were made so that this POC would be 
 - The application and configuration is all added to openshift via "oc apply", rather than a CI/CD pipeline 
 - The server JAR artifact should be stored in an artifact repository (e.g. JFrog), rather than an HTTPD container
 - The Cache configuration would likely be part of the client application source code, and updated in the RHDG cluster as part of the client CI/CD deployment
+- Cache authentication is configured via Secrets, but Production environments might use a centralized permission repository (e.g. LDAP)
 
 ### Links
 

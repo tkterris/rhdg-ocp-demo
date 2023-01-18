@@ -44,6 +44,8 @@ items:
       endpointSecretName: operator-secret
     service:
       type: DataGrid
+    container:
+      ephemeralStorage: true
     replicas: 2
 - apiVersion: infinispan.org/v2alpha1
   kind: Cache
