@@ -3,7 +3,9 @@
 
 This project demonstrates some core functionality of the Red Hat Data Grid operator in OpenShift. 
 
-## Scope
+## Overview
+
+### Scope
 
 The following features are explored in this application:
 
@@ -20,6 +22,14 @@ The following features are explored in this application:
   - Node discovery and clustering
   - Starting and stopping RHDG nodes
   - Scaling the cluster
+
+### Design
+
+This demo consists of three parts:
+- RHDG server code, made available to RHDG via an HTTPD node
+- An RHDG cluster
+  - Configurations for setting up the cluster via both the RHDG Operator and Helm are provided
+- A simple Spring Boot client application that interacts with the RHDG cluster
 
 ## Running the demo
 
@@ -58,7 +68,7 @@ HTTPD_POD=$(oc get po -l deployment=httpd-ex -o custom-columns=NAME:metadata.nam
 oc wait --for=condition=ready --timeout=2m pod/$HTTPD_POD
 oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar $HTTPD_POD:/opt/app-root/src/server.jar
 ```
-- Create the Infinispan cluster, either using the Operator or Helm (note that the Helm chart does not support custom code):
+- Create the Infinispan cluster, either using the Operator or Helm:
 ```
 ## Via the Data Grid Operator:
 
