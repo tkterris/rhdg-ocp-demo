@@ -13,8 +13,7 @@ deploy:
     storage:
       ephemeral: true
       size: 1Gi
-    #TODO the following is nonfunctional until the Helm chart repository is updated to use the latest Infinispan chart
-    libraries: httpd-ex:8080/server.jar
+    libraries: http://httpd-ex:8080/server.jar
   expose:
     annotations: []
     host: ''
@@ -32,11 +31,10 @@ deploy:
         security:
           authorization:
             roles: "authorized-role"
-        #TODO uncomment the following when the Helm chart repository is updated to use the latest Infinispan chart (incl library dependencies)
-        #persistence:
-          #store:
-            #class: "com.redhat.rhdg.demo.server.loader.CustomStore"
-            #segmented: "false"
+        persistence:
+          store:
+            class: "com.redhat.rhdg.demo.server.loader.CustomStore"
+            segmented: "false"
       name: default
       transport:
         cluster: '${infinispan.cluster.name:cluster}'

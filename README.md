@@ -38,6 +38,12 @@ This demo consists of three parts:
 - Access to an OpenShift cluster (for local testing, [OpenShift Local](https://developers.redhat.com/products/openshift-local/overview) is recommended)
 - The Data Grid Operator is installed
 - Helm is installed and the chart repository at <https://charts.openshift.io/> has been added: `helm repo add openshift-helm-charts https://charts.openshift.io/`
+  - As of writing, the OpenShift Helm chart repository has not been updated to the latest version of the Infinispan Helm chart. Until the repository is updated, 
+    run the following commands to install the chart locally:
+```
+git clone https://github.com/infinispan/infinispan-helm-charts.git
+export PATH_TO_HELM=$(pwd)/infinispan-helm-charts
+```
 
 ### Setup
 
@@ -80,8 +86,9 @@ oc apply -f ocp-yaml/operator-resources.yaml
 # Create the secret used for RHDG credentials
 oc apply -f ocp-yaml/helm-secret.yaml
 # Install the Helm chart
-helm install infinispan-cluster openshift-helm-charts/redhat-data-grid \
-    --values ocp-yaml/helm-chart.yaml
+# TODO: change `$PATH_TO_HELM` to `openshift-helm-charts/redhat-data-grid` 
+# once the OCP helm repo is updated to the latest version
+helm install infinispan-cluster $PATH_TO_HELM --values ocp-yaml/helm-chart.yaml
 ```
 
 ### Testing
@@ -91,9 +98,7 @@ The client application will have a route exposed, with a swagger UI available at
 - Cache connection information can be viewed in the `InfinispanService.java` file in the `client` project
 - Basic cache connectivity and functionality can be tested using the POST, GET, and DELETE HTTP methods on the `/infinispan/{key}` endpoint
 - If a GET is performed on a key that hasn't been stored, the custom cache loader is used to generate a random value
-  - Note: the RHDG Helm chart has not yet been updated to support custom code, so the above will only work when deploying RHDG via the Operator
 - A simple remote task can be executed via the `/infinispan/removeTask/{key}` endpoint
-  - Note: the RHDG Helm chart has not yet been updated to support custom code, so the above will only work when deploying RHDG via the Operator
 
 To test with a user that fails authentication, change `INFINISPAN_USER` and `INFINISPAN_PASSWORD` in the deployment environment variables to 
 use the `invalid.user` and `invalid.password` value from the secret. To test a user that authenticates but is unauthorized, use
