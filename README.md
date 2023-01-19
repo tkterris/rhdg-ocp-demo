@@ -67,9 +67,13 @@ oc apply -f ocp-yaml/client-application.yaml
 ```
 mvn clean install
 oc new-app httpd:latest~https://github.com/sclorg/httpd-ex.git
-sleep 20s
-HTTPD_POD=$(oc get po -l deployment=httpd-ex \
-    -o custom-columns=NAME:metadata.name --no-headers)
+HTTPD_POD=""
+while [ -z "$HTTPD_POD" ]
+do
+    sleep 1s
+    HTTPD_POD=$(oc get po -l deployment=httpd-ex \
+        -o custom-columns=NAME:metadata.name --no-headers)
+done
 oc wait --for=condition=ready --timeout=2m pod/$HTTPD_POD
 oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar \
     $HTTPD_POD:/opt/app-root/src/server.jar
@@ -167,4 +171,6 @@ Application client code derived from <https://github.com/ngecom/openshiftSpringB
 [RHDG Operator custom code deployment](https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.3/guide/1cfa1bfa-697d-4fda-9e0a-8c3e2b99f815)
 
 [Building and deploying Data Grid clusters with Helm](https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.3/html-single/building_and_deploying_data_grid_clusters_with_helm/index)
+
+[Latest Infinispan Helm Chart](https://github.com/infinispan/infinispan-helm-charts)
 
