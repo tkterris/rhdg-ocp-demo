@@ -111,6 +111,12 @@ items:
               secretKeyRef:
                 name: client-secret
                 key: authorized.password
+          - name: INFINISPAN_CLUSTER_AWARE
+            value: 'true'
+          - name: INFINISPAN_HOST
+            value: infinispan-cluster
+          - name: INFINISPAN_PORT
+            value: '11222'
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

@@ -59,9 +59,15 @@ oc new-project rhdg-ocp-demo
 
 ### Deployment steps
 
-- Start the build and deploy of the client application:
+- Build and deploy the client application, either within or outside 
+of OCP:
 ```
+## In OCP:
 oc apply -f ocp-yaml/client-application.yaml
+```
+```
+## Outside of OCP:
+mvn spring-boot:run 
 ```
 - Create an HTTPD server to provide the server JAR:
 ```
@@ -97,7 +103,8 @@ helm install infinispan-cluster $PATH_TO_HELM --values ocp-yaml/helm-chart.yaml
 
 ### Testing
 
-The client application will have a route exposed, with a swagger UI available at `/swagger-ui.html`. 
+The client application deployed on OpenShift will have a route exposed, or if running locally will be accessible at <http://localhost:8080>. The 
+swagger UI is available at `/swagger-ui.html`. 
 
 - Cache connection information can be viewed in the `InfinispanService.java` file in the `client` project
 - Basic cache connectivity and functionality can be tested using the POST, GET, and DELETE HTTP methods on the `/infinispan/{key}` endpoint
@@ -109,8 +116,9 @@ use the `invalid.user` and `invalid.password` value from the secret. To test a u
 `unauthorized.user` and `unauthorized.password`.
 
 Cache nodes can be stopped, started, and scaled by changing the `replicas` parameter of the Data Grid operator or upgrading the Helm release 
-with a new `deploy.replicas` parameter. The RHDG admin console can be accessed via an exposed `infinispan-cluster` route, with the username 
-`authorized` and password `Authorized-password!` (the same credentials used by the client application to connect to RHDG).
+with a new `deploy.replicas` parameter. The RHDG admin console can be accessed via an exposed nodePort service at <http://api.crc.testing:31222> 
+(if using CRC), with the username `authorized` and password `Authorized-password!` (the same credentials used by the client application to 
+connect to RHDG). 
 
 ### Cleanup
 
@@ -155,10 +163,29 @@ oc delete project rhdg-ocp-demo
 ### Production Considerations
 
 There are a number of design decisions that were made so that this POC would be simple and self-contained, which wouldn't necessarily be appropriate for a production application. These include:
+
 - The application and configuration is all added to openshift via "oc apply", rather than a CI/CD pipeline 
 - The server JAR artifact should be stored in an artifact repository (e.g. JFrog), rather than an HTTPD container
 - The Cache configuration would likely be part of the client application source code, and updated in the RHDG cluster as part of the client CI/CD deployment
 - Cache authentication is configured via Secrets, but Production environments might use a centralized permission repository (e.g. LDAP)
+
+### Accessing RHDG outside of OpenShift
+
+This demo includes instructions on how to connect to RHDG from outside of OCP. This does introduce a few design considerations:
+
+- There are a number ingress methods for connecting to the RHDG cluster, based on design requirements:
+  - [NodePorts](https://docs.openshift.com/container-platform/4.12/networking/configuring_ingress_cluster_traffic/configuring-ingress-cluster-traffic-nodeport.html) (used for this demo)
+  - [LoadBalancers](https://docs.openshift.com/container-platform/4.12/networking/configuring_ingress_cluster_traffic/configuring-ingress-cluster-traffic-load-balancer.html)
+  - [Routes](https://docs.openshift.com/container-platform/4.12/networking/routes/route-configuration.html)
+    - Note that Hot Rod connections over routes MUST use passthrough encryption, otherwise the connection will be broken with "invalid 
+      magic byte" errors. This is because Hot Rod is not an HTTP protocol, and Routes expect unencrypted connections to be HTTP. See 
+      [this solution article](https://access.redhat.com/solutions/6134351) for details.
+- Connections to RHDG from outside of OCP must be made with BASIC client intelligence, meaning requests will simply be load balanced 
+rather than sent to the entry's owner node. This can have a few performance and functional impacts:
+  - Cache loaders may be called multiple times for each cache entry
+  - There will be an additional network hop when a request is forwarded from a non-owner node to the entry owner
+  - Bulk operations (like keySet and size) may return incorrect results when using a cache loader that doesn't implement the BULK_READ 
+    methods (such as the CustomStore loader in this demo)
 
 ### Links
 

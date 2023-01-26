@@ -9,6 +9,10 @@ items:
           password: Authorized-password!
           roles:
           - authorized-role
+        - username: dev_user
+          password: dev_password
+          roles:
+          - authorized-role
         - username: unauthorized
           password: Unauthorized-password!
   metadata:
@@ -44,6 +48,9 @@ items:
       endpointSecretName: operator-secret
     service:
       type: DataGrid
+    expose:
+      type: NodePort
+      nodePort: 31222
     container:
       ephemeralStorage: true
     replicas: 2
@@ -59,7 +66,7 @@ items:
     clusterName: infinispan-cluster
     name: test-cache
     template: >-
-      <distributed-cache mode="SYNC" statistics="true">
+      <distributed-cache mode="SYNC" statistics="true" owners="2">
           <security>
               <authorization roles="authorized-role"/>
           </security>
@@ -71,26 +78,5 @@ items:
               <value media-type="application/x-protostream"/>
           </encoding>
       </distributed-cache>
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  annotations:
-    openshift.io/host.generated: 'true'
-  metadata:
-    labels:
-      app: infinispan-operator
-      app.kubernetes.io/component: infinispan-operator
-      app.kubernetes.io/instance: infinispan-operator
-    name: infinispan-cluster
-  spec:
-    port:
-      targetPort: infinispan
-    to:
-      kind: Service
-      name: infinispan-cluster
-      weight: 100
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-    wildcardPolicy: None
 kind: List
 metadata: {}

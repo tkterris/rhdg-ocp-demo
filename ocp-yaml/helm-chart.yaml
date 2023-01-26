@@ -15,10 +15,8 @@ deploy:
       size: 1Gi
     libraries: http://httpd-ex:8080/server.jar
   expose:
-    annotations: []
-    host: ''
-    nodePort: 0
-    type: Route
+    type: NodePort
+    nodePort: 31222
   infinispan:
     cacheContainer:
       distributedCache:

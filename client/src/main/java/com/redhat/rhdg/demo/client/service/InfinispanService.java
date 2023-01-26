@@ -2,17 +2,17 @@ package com.redhat.rhdg.demo.client.service;
 
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ClientIntelligence;
-import org.infinispan.client.hotrod.configuration.Configuration;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.marshall.MarshallerUtil;
 import org.infinispan.protostream.SerializationContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import com.redhat.rhdg.demo.proto.DemoInitializer;
 import com.redhat.rhdg.demo.proto.DemoInitializerImpl;
 
-@org.springframework.context.annotation.Configuration
+@Configuration
 public class InfinispanService {
 
 	@Value("${infinispan.host}")
@@ -27,15 +27,21 @@ public class InfinispanService {
 	@Value("${infinispan.password}")
 	private String password;
 
+	@Value("${infinispan.cluster-aware}")
+	private boolean clusterAware;
+
 	@Bean
 	public RemoteCacheManager getCacheManager() {
 		DemoInitializer initializer = new DemoInitializerImpl();
-		Configuration configuration = new ConfigurationBuilder().addServer().host(host).port(port)
-				.security().authentication()
+		ConfigurationBuilder builder = new ConfigurationBuilder();
+		builder.addServer().host(host).port(port);
+		builder.security().authentication()
 					.username(username)
-					.password(password)
-				.build();
-		RemoteCacheManager rcm = new RemoteCacheManager(configuration);
+					.password(password);
+		if (!clusterAware) {
+			builder.clientIntelligence(ClientIntelligence.BASIC);
+		}
+		RemoteCacheManager rcm = new RemoteCacheManager(builder.build());
 		SerializationContext context = MarshallerUtil.getSerializationContext(rcm);
 		initializer.registerSchema(context);
 		initializer.registerMarshallers(context);
