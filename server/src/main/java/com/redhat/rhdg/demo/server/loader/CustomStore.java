@@ -1,30 +1,34 @@
 package com.redhat.rhdg.demo.server.loader;
 
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
+import org.infinispan.commons.configuration.ConfiguredBy;
+import org.infinispan.commons.marshall.WrappedByteArray;
 import org.infinispan.persistence.spi.InitializationContext;
 import org.infinispan.persistence.spi.MarshallableEntry;
 import org.infinispan.persistence.spi.MarshallableEntryFactory;
 import org.infinispan.persistence.spi.NonBlockingStore;
 import org.infinispan.protostream.ProtobufUtil;
 import org.infinispan.protostream.SerializationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.redhat.rhdg.demo.model.DemoKey;
 import com.redhat.rhdg.demo.model.DemoValue;
 import com.redhat.rhdg.demo.proto.DemoInitializer;
 import com.redhat.rhdg.demo.proto.DemoInitializerImpl;
 
+@ConfiguredBy(CustomStoreConfiguration.class)
 public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 
-	private Random random;
 	private SerializationContext serializationCtx;
 	private MarshallableEntryFactory<K, V> entryFactory;
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
 	public CompletionStage<Void> start(InitializationContext ctx) {
 		return CompletableFuture.runAsync(() -> {
-			this.random = new Random();
 			this.serializationCtx = ProtobufUtil.newSerializationContext();
 			DemoInitializer initializer = new DemoInitializerImpl();
 			initializer.registerSchema(this.serializationCtx);
@@ -41,17 +45,20 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 	}
 
 	@Override
-	public CompletionStage<MarshallableEntry<K, V>> load(int segment, Object key) {
+	public CompletionStage<MarshallableEntry<K, V>> load(int segment, Object keyBytes) {
 		return CompletableFuture.supplyAsync(() -> {
-			// generates a dummy "value"
-			DemoValue value = new DemoValue(random.nextInt() + "");
-			byte[] valueBytes = new byte[0];
 			try {
-				valueBytes = ProtobufUtil.toWrappedByteArray(serializationCtx, value);
+				logger.info("Loading value for key " + keyBytes.toString());
+				DemoKey key = ProtobufUtil.fromWrappedByteArray(serializationCtx, 
+						((WrappedByteArray) keyBytes).getBytes());
+				// generates a dummy value from the key, by just taking the key's hash
+				DemoValue value = new DemoValue(key.hashCode() + "");
+				byte[] valueBytes = ProtobufUtil.toWrappedByteArray(serializationCtx, value);
+				return entryFactory.create(keyBytes, valueBytes);
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.error("Marshalling failed for key " + keyBytes.toString(), e);
+				return entryFactory.create(keyBytes, new byte[0]);
 			}
-			return entryFactory.create(key, valueBytes);
 		});
 	}
 

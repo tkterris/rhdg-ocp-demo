@@ -108,7 +108,7 @@ swagger UI is available at `/swagger-ui.html`.
 
 - Cache connection information can be viewed in the `InfinispanService.java` file in the `client` project
 - Basic cache connectivity and functionality can be tested using the POST, GET, and DELETE HTTP methods on the `/infinispan/{key}` endpoint
-- If a GET is performed on a key that hasn't been stored, the custom cache loader is used to generate a random value
+- If a GET is performed on a key that hasn't been stored, the custom cache loader is used to retrieve a value using the key (in this example, just by calculating the hash of the key)
 - A simple remote task can be executed via the `/infinispan/removeTask/{key}` endpoint
 
 To test with a user that fails authentication, change `INFINISPAN_USER` and `INFINISPAN_PASSWORD` in the deployment environment variables to 

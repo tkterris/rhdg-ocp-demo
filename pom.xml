@@ -41,6 +41,12 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>1.7.36.redhat-00002</version>
+			</dependency>
 
 			<dependency>
 				<groupId>com.redhat</groupId>

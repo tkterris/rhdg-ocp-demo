@@ -94,7 +94,7 @@ deploy:
         level: error
   makeDataDirWritable: false
   nameOverride: ''
-  replicas: 2
+  replicas: 4
   resourceLabels:
     - key: app
       value: infinispan-helm
