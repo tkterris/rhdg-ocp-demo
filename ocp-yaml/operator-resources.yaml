@@ -53,7 +53,7 @@ items:
       nodePort: 31222
     container:
       ephemeralStorage: true
-    replicas: 4
+    replicas: 2
 - apiVersion: infinispan.org/v2alpha1
   kind: Cache
   metadata:
