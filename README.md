@@ -1,7 +1,7 @@
 
-# Data Grid Operator Demo
+# Data Grid on OCP Demo
 
-This project demonstrates some core functionality of the Red Hat Data Grid operator in OpenShift. 
+This project demonstrates some core functionality of Red Hat Data Grid in OpenShift. 
 
 ## Overview
 
@@ -15,7 +15,7 @@ The following features are explored in this application:
   - Deploying custom code
   - Configuring custom cache loaders
 - Cache functionality
-  - Connecting to the RHDG cluster
+  - Connecting to the RHDG cluster, from within OCP and externally
   - Basic cache operations (gets and puts)
   - Executing remote tasks
 - Cluster management
@@ -45,20 +45,11 @@ git clone https://github.com/infinispan/infinispan-helm-charts.git
 export PATH_TO_HELM=$(pwd)/infinispan-helm-charts
 ```
 
-### Setup
-
-Populate environment variables (replacing as appropriate) and create the project:
+### Deployment
+- Create the project:
 ```
-export OCP_SERVER_URL=https://api.crc.testing:6443
-export DEVUSER=developer
-export DEVPASSWORD=developer
-
-oc login -u $DEVUSER -p $DEVPASSWORD $OCP_SERVER_URL
 oc new-project rhdg-ocp-demo
 ```
-
-### Deployment steps
-
 - Build and deploy the client application, either within or outside 
 of OCP:
 ```
