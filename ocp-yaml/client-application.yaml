@@ -60,17 +60,9 @@ items:
           namespace: openshift
       type: Source
     triggers:
-    - github:
-        secret: lEdmq6PwOfGLgnYsG4tA
-      type: GitHub
-    - generic:
-        secret: vVhZizaaKiTg7G7xzgG6
-      type: Generic
     - type: ConfigChange
     - imageChange: {}
       type: ImageChange
-  status:
-    lastVersion: 0
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -93,7 +85,7 @@ items:
           deployment: client
       spec:
         containers:
-        - image: ' '
+        - image: client:latest
           name: client
           ports:
           - containerPort: 8080

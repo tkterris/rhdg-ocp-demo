@@ -13,7 +13,7 @@ deploy:
     storage:
       ephemeral: true
       size: 1Gi
-    libraries: http://httpd-ex:8080/server.jar
+    libraries: http://server-jar-provider:8080/server.jar
   expose:
     type: NodePort
     nodePort: 31222

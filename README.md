@@ -56,18 +56,7 @@ mvn spring-boot:run
 ```
 - Create an HTTPD server to provide the server JAR:
 ```
-mvn clean install
-oc new-app httpd:latest~https://github.com/sclorg/httpd-ex.git
-HTTPD_POD=""
-while [ -z "$HTTPD_POD" ]
-do
-    sleep 1s
-    HTTPD_POD=$(oc get po -l deployment=httpd-ex \
-        -o custom-columns=NAME:metadata.name --no-headers)
-done
-oc wait --for=condition=ready --timeout=2m pod/$HTTPD_POD
-oc cp --no-preserve=true server/target/rhdg-ocp-demo-server*.jar \
-    $HTTPD_POD:/opt/app-root/src/server.jar
+oc apply -f ocp-yaml/server-jar-provider.yml
 ```
 - Create the Infinispan cluster, either using the Operator or Helm:
 ```
@@ -113,7 +102,7 @@ oc delete all,secret -l app=client
 ```
 ```
 # Delete the HTTPD server for server.jar:
-oc delete all -l app=httpd-ex
+oc delete all -l app=server-jar-provider
 ```
 ```
 # Delete the Infinispan cluster installed via the Operator:

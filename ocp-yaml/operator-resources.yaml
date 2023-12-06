@@ -33,7 +33,7 @@ items:
   spec:
     dependencies:
       artifacts:
-        - url: http://httpd-ex:8080/server.jar
+        - url: http://server-jar-provider:8080/server.jar
     security:
       authorization:
         roles:
