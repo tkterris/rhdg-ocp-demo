@@ -40,8 +40,9 @@ This demo consists of three parts:
 - Helm is installed and the chart repository at <https://charts.openshift.io/> has been added: `helm repo add openshift-helm-charts https://charts.openshift.io/`
 
 ### Deployment
-- Create the project:
+- Connect to OpenShift and create the project:
 ```
+oc login -u developer https://api.crc.testing:6443 
 oc new-project rhdg-ocp-demo
 ```
 - Build and deploy the client application, either within or outside 

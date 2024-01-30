@@ -77,6 +77,11 @@ items:
               <key media-type="application/x-protostream"/>
               <value media-type="application/x-protostream"/>
           </encoding>
+          <indexing>
+              <indexed-entities>
+                  <indexed-entity>rhdg_demo.DemoValue</indexed-entity>
+              </indexed-entities>
+          </indexing>
       </distributed-cache>
 kind: List
 metadata: {}
