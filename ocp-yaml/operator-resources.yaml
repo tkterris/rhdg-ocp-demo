@@ -65,23 +65,25 @@ items:
   spec:
     clusterName: infinispan-cluster
     name: test-cache
-    template: >-
-      <distributed-cache mode="SYNC" statistics="true" owners="2">
-          <security>
-              <authorization roles="authorized-role"/>
-          </security>
-          <persistence>
-              <store class="com.redhat.rhdg.demo.server.loader.CustomStore" segmented="false"/>
-          </persistence>
-          <encoding>
-              <key media-type="application/x-protostream"/>
-              <value media-type="application/x-protostream"/>
-          </encoding>
-          <indexing>
-              <indexed-entities>
-                  <indexed-entity>rhdg_demo.DemoValue</indexed-entity>
-              </indexed-entities>
-          </indexing>
-      </distributed-cache>
+    template: |-
+      distributedCache:
+        ### Identical cache config between Helm and Operator (If this cache 
+        ### config is updated, make sure to apply the change in both 
+        ### helm-chart.yaml and operator-resources.yaml)
+        mode: "SYNC"
+        owners: "2"
+        statistics: "true"
+        encoding:
+          mediaType: "application/x-protostream"
+        security:
+          authorization:
+            roles: "authorized-role"
+        persistence:
+          store:
+            class: "com.redhat.rhdg.demo.server.loader.CustomStore"
+            segmented: "false"
+        indexing:
+          indexed-entities:
+          - rhdg_demo.DemoValue
 kind: List
 metadata: {}

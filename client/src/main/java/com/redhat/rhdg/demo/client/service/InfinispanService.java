@@ -1,10 +1,10 @@
 package com.redhat.rhdg.demo.client.service;
 
+import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ClientIntelligence;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
-import org.infinispan.client.hotrod.marshall.MarshallerUtil;
-import org.infinispan.protostream.SerializationContext;
+import org.infinispan.query.remote.client.ProtobufMetadataManagerConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,36 +30,42 @@ public class InfinispanService {
 	@Value("${infinispan.cluster-aware}")
 	private boolean clusterAware;
 
+	private RemoteCacheManager rcm;
+
 	@Bean
 	public RemoteCacheManager getCacheManager() {
-		DemoInitializer initializer = new DemoInitializerImpl();
-		ConfigurationBuilder builder = new ConfigurationBuilder();
-		builder.addServer().host(host).port(port);
-		builder.security().authentication()
-					.username(username)
-					.password(password);
-		if (!clusterAware) {
-			builder.clientIntelligence(ClientIntelligence.BASIC);
+		// During application startup, create new RCM
+		if (rcm == null) {
+			ConfigurationBuilder builder = new ConfigurationBuilder();
+
+			// RHDG cluster connection info
+			builder.addServer().host(host).port(port);
+			builder.security().authentication().username(username).password(password);
+			if (!clusterAware) {
+				builder.clientIntelligence(ClientIntelligence.BASIC);
+			}
+
+			// Register context initializer with Hot Rod client
+			DemoInitializer initializer = new DemoInitializerImpl();
+			builder.addContextInitializer(initializer);
+
+			rcm = new RemoteCacheManager(builder.build());
+
+			// Store protobuf files in the RHDG cluster to support querying (technically
+			// not needed in this demo since the protofiles are in the server JAR,
+			// but if no JAR is deployed then the client needs to register the files)
+			RemoteCache<String, String> protoMetadataCache = rcm
+					.getCache(ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME);
+			if (!protoMetadataCache.containsKey(initializer.getProtoFileName())) {
+				protoMetadataCache.put(initializer.getProtoFileName(), initializer.getProtoFile());
+				String errors = protoMetadataCache.get(ProtobufMetadataManagerConstants.ERRORS_KEY_SUFFIX);
+				if (errors != null) {
+					throw new IllegalStateException("Some Protobuf schema files contain errors: " 
+							+ errors + "\nSchema :\n" + initializer.getProtoFileName());
+				}
+			}
 		}
-		RemoteCacheManager rcm = new RemoteCacheManager(builder.build());
-		SerializationContext context = MarshallerUtil.getSerializationContext(rcm);
-		initializer.registerSchema(context);
-		initializer.registerMarshallers(context);
-		
-		// The following section is usually needed to provide the protofiles to the RHDG
-		// cluster, but in this case the protofiles are included with the server JAR
-		// and so this step is not required.
-		/*
-		RemoteCache<String, String> protoMetadataCache = rcm
-				.getCache(ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME);
-		protoMetadataCache.put(initializer.getProtoFileName(), initializer.getProtoFile());
-		String errors = protoMetadataCache.get(ProtobufMetadataManagerConstants.ERRORS_KEY_SUFFIX);
-		if (errors != null) {
-			throw new IllegalStateException("Some Protobuf schema files contain errors: " + errors + "\nSchema :\n"
-					+ initializer.getProtoFileName());
-		}
-		*/
-		
+
 		return rcm;
 	}
 }
