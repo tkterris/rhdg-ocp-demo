@@ -1,6 +1,5 @@
 package com.redhat.rhdg.demo.client.service;
 
-import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ClientIntelligence;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
@@ -54,16 +53,8 @@ public class InfinispanService {
 			// Store protobuf files in the RHDG cluster to support querying (technically
 			// not needed in this demo since the protofiles are in the server JAR,
 			// but if no JAR is deployed then the client needs to register the files)
-			RemoteCache<String, String> protoMetadataCache = rcm
-					.getCache(ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME);
-			if (!protoMetadataCache.containsKey(initializer.getProtoFileName())) {
-				protoMetadataCache.put(initializer.getProtoFileName(), initializer.getProtoFile());
-				String errors = protoMetadataCache.get(ProtobufMetadataManagerConstants.ERRORS_KEY_SUFFIX);
-				if (errors != null) {
-					throw new IllegalStateException("Some Protobuf schema files contain errors: " 
-							+ errors + "\nSchema :\n" + initializer.getProtoFileName());
-				}
-			}
+			rcm.getCache(ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME)
+					.put(initializer.getProtoFileName(), initializer.getProtoFile());
 		}
 
 		return rcm;
