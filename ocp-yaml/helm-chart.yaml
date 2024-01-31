@@ -1,4 +1,5 @@
 deploy:
+  clusterDomain: cluster.local
   monitoring:
     enabled: false
   container:
@@ -41,7 +42,7 @@ deploy:
           indexed-entities:
           - rhdg_demo.DemoValue
       transport:
-        cluster: '${infinispan.cluster.name:cluster}'
+        cluster: '${infinispan.cluster.name:infinispan-cluster}'
         node-name: '${infinispan.node.name:}'
         stack: kubernetes
       security:
