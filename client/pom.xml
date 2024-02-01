@@ -25,7 +25,7 @@
 
 		<dependency>
 			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-client-hotrod</artifactId>
+			<artifactId>infinispan-client-hotrod-jakarta</artifactId>
 		</dependency>
 
 		<dependency>
@@ -40,7 +40,7 @@
 
 		<dependency>
 			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-commons</artifactId>
+			<artifactId>infinispan-commons-jakarta</artifactId>
 		</dependency>
 
 		<dependency>
@@ -75,7 +75,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<fork>true</fork>
 					<skip>false</skip>
 				</configuration>
 				<executions>
