@@ -21,8 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.redhat.rhdg.demo.model.DemoKey;
 import com.redhat.rhdg.demo.model.DemoValue;
 
+import jakarta.transaction.Transactional;
+
 @RestController
 @RequestMapping("/infinispan")
+@Transactional
 public class InfinispanController {
 
 	@Value("${cache.name}")
