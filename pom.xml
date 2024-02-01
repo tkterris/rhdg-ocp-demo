@@ -20,10 +20,12 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		
+
 		<infinispan.version>14.0.21.Final-redhat-00001</infinispan.version>
 		<spring.version>3.2.2</spring.version>
+		<springdoc.version>2.3.0</springdoc.version>
 		<slf4j.version>1.7.25.redhat-00003</slf4j.version>
+		<shadeplugin.version>3.5.1</shadeplugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -46,6 +48,12 @@
 			</dependency>
 
 			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+				<version>${springdoc.version}</version>
+			</dependency>
+
+			<dependency>
 				<groupId>com.redhat</groupId>
 				<artifactId>rhdg-ocp-demo-libs</artifactId>
 				<version>1.0-SNAPSHOT</version>
@@ -65,5 +73,14 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>${shadeplugin.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 </project>

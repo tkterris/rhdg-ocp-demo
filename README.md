@@ -79,8 +79,8 @@ helm install infinispan-cluster openshift-helm-charts/redhat-data-grid --values 
 
 ### Testing
 
-The client application deployed on OpenShift will have a route exposed, or if running locally will be accessible at <http://localhost:8080>. The 
-swagger UI is available at `/swagger-ui.html`. 
+The client application deployed on OpenShift will have a route exposed, or if running locally will be accessible at <http://localhost:8080>. Navigating
+to the root path of the client application (the Route URL in OpenShift or <http://localhost:8080> locally) will redirect to a Swagger UI.
 
 - Cache connection information can be viewed in the `InfinispanService.java` file in the `client` project
 - Basic cache connectivity and functionality can be tested using the POST, GET, and DELETE HTTP methods on the `/infinispan/{key}` endpoint
