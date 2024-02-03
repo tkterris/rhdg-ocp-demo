@@ -1,6 +1,10 @@
 package com.redhat.rhdg.demo.server.loader;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 
 import org.infinispan.commons.configuration.ConfiguredBy;
@@ -11,6 +15,7 @@ import org.infinispan.persistence.spi.MarshallableEntryFactory;
 import org.infinispan.persistence.spi.NonBlockingStore;
 import org.infinispan.protostream.ProtobufUtil;
 import org.infinispan.protostream.SerializationContext;
+import org.infinispan.util.concurrent.BlockingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +29,13 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 
 	private SerializationContext serializationCtx;
 	private MarshallableEntryFactory<K, V> entryFactory;
+	private BlockingManager blockingManager;
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	@Override
+	public Set<NonBlockingStore.Characteristic> characteristics() {
+		return new HashSet<Characteristic>(Arrays.asList(NonBlockingStore.Characteristic.READ_ONLY));
+	}
 
 	@Override
 	public CompletionStage<Void> start(InitializationContext ctx) {
@@ -35,6 +46,7 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 			initializer.registerMarshallers(this.serializationCtx);
 			
 			this.entryFactory = ctx.getMarshallableEntryFactory();
+			this.blockingManager = ctx.getBlockingManager();
 			return;
 		});
 	}
@@ -56,25 +68,24 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 				byte[] valueBytes = ProtobufUtil.toWrappedByteArray(serializationCtx, value);
 				return entryFactory.create(keyBytes, valueBytes);
 			} catch (Exception e) {
-				logger.error("Marshalling failed for key " + keyBytes.toString(), e);
-				return entryFactory.create(keyBytes, new byte[0]);
+				throw new CompletionException("Marshalling failed for key " + keyBytes.toString(), e);
 			}
-		});
+		}, blockingManager.asExecutor(this.getClass().getName()));
 	}
 
 	@Override
 	public CompletionStage<Void> write(int segment, MarshallableEntry<? extends K, ? extends V> entry) {
-		return CompletableFuture.runAsync(() -> {});
+		return CompletableFuture.failedStage(new UnsupportedOperationException("CustomStore is READ_ONLY"));
 	}
 
 	@Override
 	public CompletionStage<Boolean> delete(int segment, Object key) {
-		return CompletableFuture.supplyAsync(() -> false);
+		return CompletableFuture.failedStage(new UnsupportedOperationException("CustomStore is READ_ONLY"));
 	}
 
 	@Override
 	public CompletionStage<Void> clear() {
-		return CompletableFuture.runAsync(() -> {});
+		return CompletableFuture.failedStage(new UnsupportedOperationException("CustomStore is READ_ONLY"));
 	}
 
 }
