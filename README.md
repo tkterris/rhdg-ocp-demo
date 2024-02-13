@@ -83,9 +83,17 @@ The client application deployed on OpenShift will have a route exposed, or if ru
 to the root path of the client application (the Route URL in OpenShift or <http://localhost:8080> locally) will redirect to a Swagger UI.
 
 - Cache connection information can be viewed in the `InfinispanService.java` file in the `client` project
-- Basic cache connectivity and functionality can be tested using the POST, GET, and DELETE HTTP methods on the `/infinispan/{key}` endpoint
-- If a GET is performed on a key that hasn't been stored, the custom cache loader is used to retrieve a value using the key (in this example, just by calculating the hash of the key)
-- A simple remote task can be executed via the `/infinispan/removeTask/{key}` endpoint
+- Marshalling cache entries is done via Java Serialization (in `serial-cache`, with `SerialController`, 
+  `SerialKey`, etc) and via Protobuf Serialization (in `proto-cache`, with `ProtoController`, `ProtoKey`, etc).
+  - Java Serialization is the simplest, and uses `java.io.Serializable`.
+  - Protobuf encoding requires generating Protofiles and marshallers (with `ProtoInitializer`) and registering
+    the Protofiles on the RHDG cluster, and is required querying and data conversion.
+  - Custom stores and remote tasks require registering the marshallers and classes on the RHDG cluster, as
+    is done in this demo with Proto serialization. 
+- Basic cache connectivity and functionality can be tested using the `POST`, `GET`, and `DELETE` HTTP methods on the `/serial/{key}` and `/proto/{key}` endpoints
+- If a `GET /proto/{key}` is performed on a key that hasn't been stored, the custom cache loader is used to retrieve a value using the key (in this example, just by calculating the hash of the key)
+- A simple remote task can be executed via the `POST /proto/removeTask/{key}` endpoint
+- Querying by value can be tested via the `GET /proto/query/{queryText}` endpoint
 
 To test with a user that fails authentication, change `INFINISPAN_USER` and `INFINISPAN_PASSWORD` in the deployment environment variables to 
 use the `invalid.user` and `invalid.password` value from the secret. To test a user that authenticates but is unauthorized, use

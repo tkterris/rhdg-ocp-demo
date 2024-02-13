@@ -47,8 +47,8 @@ public class ProtoController extends Controller<ProtoKey, ProtoValue> {
 		return new ProtoValue(value);
 	}
 
-	@GetMapping(value = "/query")
-	public Object[] query(@RequestParam(name = "query", required = true) String queryText) {
+	@GetMapping(value = "/query/{queryText}")
+	public Object[] query(@PathVariable("queryText") String queryText) {
 		// Execute a full-text query
 		QueryFactory queryFactory = Search.getQueryFactory(getCache());
 		Query<ProtoValue> query = queryFactory.create("FROM rhdg_demo.ProtoValue WHERE data = :queryText");
