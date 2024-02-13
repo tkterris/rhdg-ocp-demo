@@ -57,14 +57,14 @@ items:
 - apiVersion: infinispan.org/v2alpha1
   kind: Cache
   metadata:
-    name: test-cache
+    name: proto-cache
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
       app.kubernetes.io/instance: infinispan-operator
   spec:
     clusterName: infinispan-cluster
-    name: test-cache
+    name: proto-cache
     template: |-
       distributedCache:
         ### Identical cache config between Helm and Operator (If this cache 
@@ -84,6 +84,30 @@ items:
             segmented: "false"
         indexing:
           indexed-entities:
-          - rhdg_demo.DemoValue
+          - rhdg_demo.ProtoValue
+- apiVersion: infinispan.org/v2alpha1
+  kind: Cache
+  metadata:
+    name: serial-cache
+    labels:
+      app: infinispan-operator
+      app.kubernetes.io/component: infinispan-operator
+      app.kubernetes.io/instance: infinispan-operator
+  spec:
+    clusterName: infinispan-cluster
+    name: serial-cache
+    template: |-
+      distributedCache:
+        ### Identical cache config between Helm and Operator (If this cache 
+        ### config is updated, make sure to apply the change in both 
+        ### helm-chart.yaml and operator-resources.yaml)
+        mode: "SYNC"
+        owners: "2"
+        statistics: "true"
+        encoding:
+          mediaType: "application/x-java-serialized-object"
+        security:
+          authorization:
+            roles: "authorized-role"
 kind: List
 metadata: {}

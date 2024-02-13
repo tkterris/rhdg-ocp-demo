@@ -19,10 +19,10 @@ import org.infinispan.util.concurrent.BlockingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.redhat.rhdg.demo.model.DemoKey;
-import com.redhat.rhdg.demo.model.DemoValue;
-import com.redhat.rhdg.demo.proto.DemoInitializer;
-import com.redhat.rhdg.demo.proto.DemoInitializerImpl;
+import com.redhat.rhdg.demo.model.ProtoInitializer;
+import com.redhat.rhdg.demo.model.ProtoInitializerImpl;
+import com.redhat.rhdg.demo.model.proto.ProtoKey;
+import com.redhat.rhdg.demo.model.proto.ProtoValue;
 
 @ConfiguredBy(CustomStoreConfiguration.class)
 public class CustomStore<K, V> implements NonBlockingStore<K, V> {
@@ -41,7 +41,7 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 	public CompletionStage<Void> start(InitializationContext ctx) {
 		return CompletableFuture.runAsync(() -> {
 			this.serializationCtx = ProtobufUtil.newSerializationContext();
-			DemoInitializer initializer = new DemoInitializerImpl();
+			ProtoInitializer initializer = new ProtoInitializerImpl();
 			initializer.registerSchema(this.serializationCtx);
 			initializer.registerMarshallers(this.serializationCtx);
 			
@@ -61,10 +61,10 @@ public class CustomStore<K, V> implements NonBlockingStore<K, V> {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				logger.info("Loading value for key " + keyBytes.toString());
-				DemoKey key = ProtobufUtil.fromWrappedByteArray(serializationCtx, 
+				ProtoKey key = ProtobufUtil.fromWrappedByteArray(serializationCtx, 
 						((WrappedByteArray) keyBytes).getBytes());
 				// generates a dummy value from the key, by just taking the key's hash
-				DemoValue value = new DemoValue(key.hashCode() + "");
+				ProtoValue value = new ProtoValue(key.hashCode() + "");
 				byte[] valueBytes = ProtobufUtil.toWrappedByteArray(serializationCtx, value);
 				return entryFactory.create(keyBytes, valueBytes);
 			} catch (Exception e) {

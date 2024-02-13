@@ -21,26 +21,41 @@ deploy:
   infinispan:
     cacheContainer:
       name: default
-      distributedCache:
-        name: "test-cache"
-        ### Identical cache config between Helm and Operator (If this cache 
-        ### config is updated, make sure to apply the change in both 
-        ### helm-chart.yaml and operator-resources.yaml)
-        mode: "SYNC"
-        owners: "2"
-        statistics: "true"
-        encoding:
-          mediaType: "application/x-protostream"
-        security:
-          authorization:
-            roles: "authorized-role"
-        persistence:
-          store:
-            class: "com.redhat.rhdg.demo.server.loader.CustomStore"
-            segmented: "false"
-        indexing:
-          indexed-entities:
-          - rhdg_demo.DemoValue
+      statistics: true
+      caches:
+        proto-cache:
+          distributedCache:
+            ### Identical cache config between Helm and Operator (If this cache 
+            ### config is updated, make sure to apply the change in both 
+            ### helm-chart.yaml and operator-resources.yaml)
+            mode: "SYNC"
+            owners: "2"
+            statistics: "true"
+            encoding:
+              mediaType: "application/x-protostream"
+            security:
+              authorization:
+                roles: "authorized-role"
+            persistence:
+              store:
+                class: "com.redhat.rhdg.demo.server.loader.CustomStore"
+                segmented: "false"
+            indexing:
+              indexed-entities:
+              - rhdg_demo.ProtoValue
+        serial-cache:
+          distributedCache:
+            ### Identical cache config between Helm and Operator (If this cache 
+            ### config is updated, make sure to apply the change in both 
+            ### helm-chart.yaml and operator-resources.yaml)
+            mode: "SYNC"
+            owners: "2"
+            statistics: "true"
+            encoding:
+              mediaType: "application/x-java-serialized-object"
+            security:
+              authorization:
+                roles: "authorized-role"
       transport:
         cluster: '${infinispan.cluster.name:infinispan-cluster}'
         node-name: '${infinispan.node.name:}'

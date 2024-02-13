@@ -1,15 +1,15 @@
-package com.redhat.rhdg.demo.model;
+package com.redhat.rhdg.demo.model.proto;
 
 import org.infinispan.protostream.annotations.ProtoFactory;
 import org.infinispan.protostream.annotations.ProtoField;
 
-public class DemoKey {
+public class ProtoKey {
 
 	@ProtoField(1)
 	String uid;
 	
 	@ProtoFactory
-	public DemoKey(String uid) {
+	public ProtoKey(String uid) {
 		this.uid = uid;
 	}
 
@@ -23,6 +23,6 @@ public class DemoKey {
 
 	@Override
 	public String toString() {
-		return "DemoKey [uid=" + uid + "]";
+		return "ProtoKey [uid=" + uid + "]";
 	}
 }
