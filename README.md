@@ -52,7 +52,7 @@ oc new-project rhdg-ocp-demo
 of OCP:
 ```
 ## In OCP:
-oc apply -f ocp-yaml/client-application.yaml
+oc process -f ocp-yaml/client-application.yaml | oc create -f -
 ```
 ```
 ## Outside of OCP:
@@ -60,19 +60,19 @@ mvn spring-boot:run
 ```
 - Create an HTTPD server to provide the server JAR:
 ```
-oc apply -f ocp-yaml/server-jar-provider.yml
+oc process -f ocp-yaml/server-jar-provider.yaml | oc create -f -
 ```
 - Create the Infinispan cluster, either using the Operator or Helm:
 ```
 ## Via the Data Grid Operator:
 
-oc apply -f ocp-yaml/operator-resources.yaml
+oc process -f ocp-yaml/operator-resources.yaml | oc create -f -
 ```
 ```
 ## Via Helm:
 
 # Create the secret used for RHDG credentials
-oc apply -f ocp-yaml/helm-secret.yaml
+oc process -f ocp-yaml/helm-secret.yaml | oc create -f -
 # Install the Helm chart
 helm install infinispan-cluster openshift-helm-charts/redhat-data-grid --values ocp-yaml/helm-chart.yaml
 ```

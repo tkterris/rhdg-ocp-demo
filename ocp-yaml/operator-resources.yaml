@@ -1,7 +1,18 @@
-apiVersion: v1
-items:
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: operator-resources-template
+  apiVersion: v1
+objects:
 - apiVersion: v1
   kind: Secret
+  metadata:
+    name: operator-secret
+    labels:
+      app: infinispan-operator
+      app.kubernetes.io/component: infinispan-operator
+      app.kubernetes.io/instance: infinispan-operator
+  type: Opaque
   stringData:
     identities.yaml: |-
       credentials:
@@ -15,13 +26,6 @@ items:
           - authorized-role
         - username: unauthorized
           password: Unauthorized-password!
-  metadata:
-    name: operator-secret
-    labels:
-      app: infinispan-operator
-      app.kubernetes.io/component: infinispan-operator
-      app.kubernetes.io/instance: infinispan-operator
-  type: Opaque
 - apiVersion: infinispan.org/v1
   kind: Infinispan
   metadata:
@@ -109,5 +113,3 @@ items:
         security:
           authorization:
             roles: "authorized-role"
-kind: List
-metadata: {}

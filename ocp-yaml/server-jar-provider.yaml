@@ -1,5 +1,9 @@
-apiVersion: v1
-items:
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: server-jar-provider-template
+  apiVersion: v1
+objects:
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
@@ -11,8 +15,6 @@ items:
   spec:
     lookupPolicy:
       local: false
-  status:
-    dockerImageRepository: ""
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
@@ -152,5 +154,3 @@ items:
       targetPort: 8443
     selector:
       deployment: server-jar-provider
-kind: List
-metadata: {}
