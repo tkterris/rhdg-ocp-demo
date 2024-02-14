@@ -29,7 +29,7 @@ objects:
 - apiVersion: infinispan.org/v1
   kind: Infinispan
   metadata:
-    name: "infinispan-cluster-${SITE_NAME_LOCAL}"
+    name: ${CLUSTER_NAME_LOCAL}
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
@@ -61,7 +61,7 @@ objects:
           maxRelayNodes: ${{REPLICAS}}
         locations:
           - name: ${SITE_NAME_REMOTE}
-            clusterName: "infinispan-cluster-${SITE_NAME_REMOTE}"
+            clusterName: ${CLUSTER_NAME_REMOTE}
             url: "infinispan+xsite://${GOSSIP_HOST_REMOTE}:${GOSSIP_PORT_REMOTE}"
       container:
         ephemeralStorage: true
@@ -78,7 +78,7 @@ objects:
       app.kubernetes.io/component: infinispan-operator
       app.kubernetes.io/instance: infinispan-operator
   spec:
-    clusterName: "infinispan-cluster-${SITE_NAME_LOCAL}"
+    clusterName: ${CLUSTER_NAME_LOCAL}
     name: proto-cache
     template: |-
       distributedCache:
@@ -113,7 +113,7 @@ objects:
       app.kubernetes.io/component: infinispan-operator
       app.kubernetes.io/instance: infinispan-operator
   spec:
-    clusterName: "infinispan-cluster-${SITE_NAME_LOCAL}"
+    clusterName: ${CLUSTER_NAME_LOCAL}
     name: serial-cache
     template: |-
       distributedCache:
@@ -133,6 +133,11 @@ objects:
             backup:
               strategy: "ASYNC"
 parameters:
+  - name: CLUSTER_NAME_LOCAL
+    displayName: Local site name for cross-site replication
+    description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of SITE_NAME_REMOTE.
+    value: infinispan-cluster
+    required: true
   - name: SITE_NAME_LOCAL 
     displayName: Local site name for cross-site replication
     description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of SITE_NAME_REMOTE.
@@ -147,6 +152,11 @@ parameters:
     displayName: Local site name for cross-site replication
     description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of SITE_NAME_REMOTE.
     value: "31223"
+    required: true
+  - name: CLUSTER_NAME_REMOTE 
+    displayName: Local site name for cross-site replication
+    description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of SITE_NAME_REMOTE.
+    value: infinispan-cluster-remote
     required: true
   - name: SITE_NAME_REMOTE 
     displayName: Remote site name for cross-site replication

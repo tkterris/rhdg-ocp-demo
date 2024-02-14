@@ -68,7 +68,7 @@ oc process -f ocp-yaml/server-jar-provider.yaml | oc create -f -
 
 oc process -f ocp-yaml/operator-resources.yaml | oc create -f -
 # To enable cross-site replication
-oc process -f ocp-yaml/operator-resources.yaml -p SITE_NAME_LOCAL=site2 -p NODE_PORT_LOCAL=31224 -p GOSSIP_PORT_LOCAL=31225 -p SITE_NAME_REMOTE=site1 -p GOSSIP_PORT_REMOTE=31223 | oc create -f -
+oc process -f ocp-yaml/operator-resources.yaml -p CLUSTER_NAME_LOCAL=infinispan-cluster-remote -p SITE_NAME_LOCAL=site2 -p NODE_PORT_LOCAL=31224 -p GOSSIP_PORT_LOCAL=31225 -p CLUSTER_NAME_REMOTE=infinispan-cluster -p SITE_NAME_REMOTE=site1 -p GOSSIP_PORT_REMOTE=31223 | oc create -f -
 ```
 ```
 ## Via Helm:
@@ -76,7 +76,7 @@ oc process -f ocp-yaml/operator-resources.yaml -p SITE_NAME_LOCAL=site2 -p NODE_
 # Create the secret used for RHDG credentials
 oc process -f ocp-yaml/helm-secret.yaml | oc create -f -
 # Install the Helm chart
-helm install infinispan-cluster-site1 openshift-helm-charts/redhat-data-grid --values ocp-yaml/helm-values.yaml
+helm install infinispan-cluster openshift-helm-charts/redhat-data-grid --values ocp-yaml/helm-values.yaml
 ```
 
 ### Testing
@@ -124,7 +124,7 @@ oc delete all,secret,infinispan,cache -l app=infinispan-operator
 ```
 ```
 # Delete the Infinispan cluster installed via Helm:
-helm uninstall infinispan-cluster-site1
+helm uninstall infinispan-cluster
 oc delete secret -l app=infinispan-helm
 ```
 
