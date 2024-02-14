@@ -7,7 +7,7 @@ objects:
 - apiVersion: v1
   kind: Secret
   metadata:
-    name: "operator-secret-${LOCAL_SITE_NAME}"
+    name: "operator-secret-${SITE_NAME_LOCAL}"
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
@@ -29,7 +29,7 @@ objects:
 - apiVersion: infinispan.org/v1
   kind: Infinispan
   metadata:
-    name: "infinispan-cluster-${LOCAL_SITE_NAME}"
+    name: "infinispan-cluster-${SITE_NAME_LOCAL}"
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
@@ -49,36 +49,36 @@ objects:
         type: None
         clientCert: None
       endpointAuthentication: true
-      endpointSecretName: "operator-secret-${LOCAL_SITE_NAME}"
+      endpointSecretName: "operator-secret-${SITE_NAME_LOCAL}"
     service:
       type: DataGrid
       sites:
         local:
-          name: ${LOCAL_SITE_NAME}
+          name: ${SITE_NAME_LOCAL}
           expose:
-            type: ClusterIP
-          maxRelayNodes: 1
-          discovery:
-            launchGossipRouter: ${{LAUNCH_GOSSIP}}
+            type: NodePort
+            nodePort: ${{GOSSIP_PORT_LOCAL}}
+          maxRelayNodes: ${{REPLICAS}}
         locations:
-          - name: ${REMOTE_SITE_NAME}
-            clusterName: "infinispan-cluster-${REMOTE_SITE_NAME}"
+          - name: ${SITE_NAME_REMOTE}
+            clusterName: "infinispan-cluster-${SITE_NAME_REMOTE}"
+            url: "infinispan+xsite://${GOSSIP_HOST_REMOTE}:${GOSSIP_PORT_REMOTE}"
       container:
         ephemeralStorage: true
     expose:
       type: NodePort
-      nodePort: ${{NODE_PORT}}
-    replicas: 2
+      nodePort: ${{NODE_PORT_LOCAL}}
+    replicas: ${{REPLICAS}}
 - apiVersion: infinispan.org/v2alpha1
   kind: Cache
   metadata:
-    name: "proto-cache-${LOCAL_SITE_NAME}"
+    name: "proto-cache-${SITE_NAME_LOCAL}"
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
       app.kubernetes.io/instance: infinispan-operator
   spec:
-    clusterName: "infinispan-cluster-${LOCAL_SITE_NAME}"
+    clusterName: "infinispan-cluster-${SITE_NAME_LOCAL}"
     name: proto-cache
     template: |-
       distributedCache:
@@ -101,19 +101,19 @@ objects:
           indexed-entities:
           - rhdg_demo.ProtoValue
         backups:
-          ${REMOTE_SITE_NAME}:
+          ${SITE_NAME_REMOTE}:
             backup:
               strategy: "ASYNC"
 - apiVersion: infinispan.org/v2alpha1
   kind: Cache
   metadata:
-    name: "serial-cache-${LOCAL_SITE_NAME}"
+    name: "serial-cache-${SITE_NAME_LOCAL}"
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
       app.kubernetes.io/instance: infinispan-operator
   spec:
-    clusterName: "infinispan-cluster-${LOCAL_SITE_NAME}"
+    clusterName: "infinispan-cluster-${SITE_NAME_LOCAL}"
     name: serial-cache
     template: |-
       distributedCache:
@@ -129,27 +129,42 @@ objects:
           authorization:
             roles: "authorized-role admin"
         backups:
-          ${REMOTE_SITE_NAME}:
+          ${SITE_NAME_REMOTE}:
             backup:
               strategy: "ASYNC"
 parameters:
-  - name: LOCAL_SITE_NAME 
+  - name: SITE_NAME_LOCAL 
     displayName: Local site name for cross-site replication
-    description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of REMOTE_SITE_NAME.
+    description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of SITE_NAME_REMOTE.
     value: site1
     required: true
-  - name: REMOTE_SITE_NAME 
-    displayName: Remote site name for cross-site replication
-    description: Site name of the other cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of LOCAL_SITE_NAME.
-    value: site2
-    required: true
-  - name: NODE_PORT 
-    displayName: RHDG exposed node port
+  - name: NODE_PORT_LOCAL 
+    displayName: RHDG exposed NodePort
     description: The node port used by this RHDG cluster for connections from outside of OCP. Must be unique.
     value: "31222"
     required: true
-  - name: LAUNCH_GOSSIP 
-    displayName: Whether the Gossip router is launched for XSR
-    description: Determines whether the Gossip router for cross-site replication is created. Should only be "true" for one cluster per namespace.
-    value: "true"
+  - name: GOSSIP_PORT_LOCAL 
+    displayName: Local site name for cross-site replication
+    description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of SITE_NAME_REMOTE.
+    value: "31223"
+    required: true
+  - name: SITE_NAME_REMOTE 
+    displayName: Remote site name for cross-site replication
+    description: Site name of the other cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of SITE_NAME_LOCAL.
+    value: site2
+    required: true
+  - name: GOSSIP_HOST_REMOTE 
+    displayName: Local site name for cross-site replication
+    description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of SITE_NAME_REMOTE.
+    value: "api.crc.testing"
+    required: true
+  - name: GOSSIP_PORT_REMOTE 
+    displayName: Local site name for cross-site replication
+    description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of SITE_NAME_REMOTE.
+    value: "31225"
+    required: true
+  - name: REPLICAS 
+    displayName: Replica count
+    description: The number of RHDG nodes in this cluster
+    value: "2"
     required: true

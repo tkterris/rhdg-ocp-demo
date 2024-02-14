@@ -108,7 +108,7 @@ objects:
           - name: INFINISPAN_CLUSTER_AWARE
             value: 'true'
           - name: INFINISPAN_HOST
-            value: "infinispan-cluster-${LOCAL_SITE_NAME}"
+            value: "infinispan-cluster-${SITE_NAME_LOCAL}"
           - name: INFINISPAN_PORT
             value: '11222'
           securityContext:
@@ -162,7 +162,7 @@ objects:
       insecureEdgeTerminationPolicy: Redirect
     wildcardPolicy: None
 parameters:
-  - name: LOCAL_SITE_NAME 
+  - name: SITE_NAME_LOCAL 
     displayName: Local site name for cross-site replication
     description: Site name of the local RHDG cluster, used for cross-site replication. 
     value: site1

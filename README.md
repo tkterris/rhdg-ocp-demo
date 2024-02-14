@@ -68,7 +68,7 @@ oc process -f ocp-yaml/server-jar-provider.yaml | oc create -f -
 
 oc process -f ocp-yaml/operator-resources.yaml | oc create -f -
 # To enable cross-site replication
-oc process -f ocp-yaml/operator-resources.yaml -p LOCAL_SITE_NAME=site2 -p REMOTE_SITE_NAME=site1 -p NODE_PORT=31223 -p LAUNCH_GOSSIP=false | oc create -f -
+oc process -f ocp-yaml/operator-resources.yaml -p SITE_NAME_LOCAL=site2 -p NODE_PORT_LOCAL=31224 -p GOSSIP_PORT_LOCAL=31225 -p SITE_NAME_REMOTE=site1 -p GOSSIP_PORT_REMOTE=31223 | oc create -f -
 ```
 ```
 ## Via Helm:
