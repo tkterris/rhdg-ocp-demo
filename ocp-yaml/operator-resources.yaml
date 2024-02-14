@@ -7,7 +7,7 @@ objects:
 - apiVersion: v1
   kind: Secret
   metadata:
-    name: operator-secret
+    name: "operator-secret-${LOCAL_SITE_NAME}"
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
@@ -29,7 +29,7 @@ objects:
 - apiVersion: infinispan.org/v1
   kind: Infinispan
   metadata:
-    name: infinispan-cluster
+    name: "infinispan-cluster-${LOCAL_SITE_NAME}"
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
@@ -49,31 +49,42 @@ objects:
         type: None
         clientCert: None
       endpointAuthentication: true
-      endpointSecretName: operator-secret
+      endpointSecretName: "operator-secret-${LOCAL_SITE_NAME}"
     service:
       type: DataGrid
+      sites:
+        local:
+          name: ${LOCAL_SITE_NAME}
+          expose:
+            type: ClusterIP
+          maxRelayNodes: 1
+          discovery:
+            launchGossipRouter: ${{LAUNCH_GOSSIP}}
+        locations:
+          - name: ${REMOTE_SITE_NAME}
+            clusterName: "infinispan-cluster-${REMOTE_SITE_NAME}"
       container:
         ephemeralStorage: true
     expose:
       type: NodePort
-      nodePort: 31222
+      nodePort: ${{NODE_PORT}}
     replicas: 2
 - apiVersion: infinispan.org/v2alpha1
   kind: Cache
   metadata:
-    name: proto-cache
+    name: "proto-cache-${LOCAL_SITE_NAME}"
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
       app.kubernetes.io/instance: infinispan-operator
   spec:
-    clusterName: infinispan-cluster
+    clusterName: "infinispan-cluster-${LOCAL_SITE_NAME}"
     name: proto-cache
     template: |-
       distributedCache:
         ### Identical cache config between Helm and Operator (If this cache 
         ### config is updated, make sure to apply the change in both 
-        ### helm-chart.yaml and operator-resources.yaml)
+        ### helm-values.yaml and operator-resources.yaml)
         mode: "SYNC"
         owners: "2"
         statistics: "true"
@@ -81,7 +92,7 @@ objects:
           mediaType: "application/x-protostream"
         security:
           authorization:
-            roles: "authorized-role"
+            roles: "authorized-role admin"
         persistence:
           store:
             class: "com.redhat.rhdg.demo.server.loader.CustomStore"
@@ -89,22 +100,26 @@ objects:
         indexing:
           indexed-entities:
           - rhdg_demo.ProtoValue
+        backups:
+          ${REMOTE_SITE_NAME}:
+            backup:
+              strategy: "ASYNC"
 - apiVersion: infinispan.org/v2alpha1
   kind: Cache
   metadata:
-    name: serial-cache
+    name: "serial-cache-${LOCAL_SITE_NAME}"
     labels:
       app: infinispan-operator
       app.kubernetes.io/component: infinispan-operator
       app.kubernetes.io/instance: infinispan-operator
   spec:
-    clusterName: infinispan-cluster
+    clusterName: "infinispan-cluster-${LOCAL_SITE_NAME}"
     name: serial-cache
     template: |-
       distributedCache:
         ### Identical cache config between Helm and Operator (If this cache 
         ### config is updated, make sure to apply the change in both 
-        ### helm-chart.yaml and operator-resources.yaml)
+        ### helm-values.yaml and operator-resources.yaml)
         mode: "SYNC"
         owners: "2"
         statistics: "true"
@@ -112,4 +127,29 @@ objects:
           mediaType: "application/x-java-serialized-object"
         security:
           authorization:
-            roles: "authorized-role"
+            roles: "authorized-role admin"
+        backups:
+          ${REMOTE_SITE_NAME}:
+            backup:
+              strategy: "ASYNC"
+parameters:
+  - name: LOCAL_SITE_NAME 
+    displayName: Local site name for cross-site replication
+    description: Site name of this cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of REMOTE_SITE_NAME.
+    value: site1
+    required: true
+  - name: REMOTE_SITE_NAME 
+    displayName: Remote site name for cross-site replication
+    description: Site name of the other cluster, used for cross-site replication. Must be one of "site1" or "site2", opposite of LOCAL_SITE_NAME.
+    value: site2
+    required: true
+  - name: NODE_PORT 
+    displayName: RHDG exposed node port
+    description: The node port used by this RHDG cluster for connections from outside of OCP. Must be unique.
+    value: "31222"
+    required: true
+  - name: LAUNCH_GOSSIP 
+    displayName: Whether the Gossip router is launched for XSR
+    description: Determines whether the Gossip router for cross-site replication is created. Should only be "true" for one cluster per namespace.
+    value: "true"
+    required: true

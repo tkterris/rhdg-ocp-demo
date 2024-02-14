@@ -15,9 +15,6 @@ deploy:
       ephemeral: true
       size: 1Gi
     libraries: http://server-jar-provider:8080/server.jar
-  expose:
-    type: NodePort
-    nodePort: 31222
   infinispan:
     cacheContainer:
       name: default
@@ -27,7 +24,7 @@ deploy:
           distributedCache:
             ### Identical cache config between Helm and Operator (If this cache 
             ### config is updated, make sure to apply the change in both 
-            ### helm-chart.yaml and operator-resources.yaml)
+            ### helm-values.yaml and operator-resources.yaml)
             mode: "SYNC"
             owners: "2"
             statistics: "true"
@@ -35,7 +32,7 @@ deploy:
               mediaType: "application/x-protostream"
             security:
               authorization:
-                roles: "authorized-role"
+                roles: "authorized-role admin"
             persistence:
               store:
                 class: "com.redhat.rhdg.demo.server.loader.CustomStore"
@@ -47,7 +44,7 @@ deploy:
           distributedCache:
             ### Identical cache config between Helm and Operator (If this cache 
             ### config is updated, make sure to apply the change in both 
-            ### helm-chart.yaml and operator-resources.yaml)
+            ### helm-values.yaml and operator-resources.yaml)
             mode: "SYNC"
             owners: "2"
             statistics: "true"
@@ -55,9 +52,9 @@ deploy:
               mediaType: "application/x-java-serialized-object"
             security:
               authorization:
-                roles: "authorized-role"
+                roles: "authorized-role admin"
       transport:
-        cluster: '${infinispan.cluster.name:infinispan-cluster}'
+        cluster: '${infinispan.cluster.name:infinispan-cluster-site1}'
         node-name: '${infinispan.node.name:}'
         stack: kubernetes
       security:

@@ -67,6 +67,8 @@ oc process -f ocp-yaml/server-jar-provider.yaml | oc create -f -
 ## Via the Data Grid Operator:
 
 oc process -f ocp-yaml/operator-resources.yaml | oc create -f -
+# To enable cross-site replication
+oc process -f ocp-yaml/operator-resources.yaml -p LOCAL_SITE_NAME=site2 -p REMOTE_SITE_NAME=site1 -p NODE_PORT=31223 -p LAUNCH_GOSSIP=false | oc create -f -
 ```
 ```
 ## Via Helm:
@@ -74,7 +76,7 @@ oc process -f ocp-yaml/operator-resources.yaml | oc create -f -
 # Create the secret used for RHDG credentials
 oc process -f ocp-yaml/helm-secret.yaml | oc create -f -
 # Install the Helm chart
-helm install infinispan-cluster openshift-helm-charts/redhat-data-grid --values ocp-yaml/helm-chart.yaml
+helm install infinispan-cluster-site1 openshift-helm-charts/redhat-data-grid --values ocp-yaml/helm-values.yaml
 ```
 
 ### Testing
@@ -100,7 +102,7 @@ use the `invalid.user` and `invalid.password` value from the secret. To test a u
 `unauthorized.user` and `unauthorized.password`.
 
 Cache nodes can be stopped, started, and scaled by changing the `replicas` parameter of the Data Grid operator or upgrading the Helm release 
-with a new `deploy.replicas` parameter. The RHDG admin console can be accessed via an exposed nodePort service at <http://api.crc.testing:31222> 
+with a new `deploy.replicas` parameter. The RHDG admin console can be accessed via an exposed NodePort service at <http://api.crc.testing:31222> 
 (if using CRC), with the username `authorized` and password `Authorized-password!` (the same credentials used by the client application to 
 connect to RHDG). 
 
@@ -122,7 +124,7 @@ oc delete all,secret,infinispan,cache -l app=infinispan-operator
 ```
 ```
 # Delete the Infinispan cluster installed via Helm:
-helm uninstall infinispan-cluster
+helm uninstall infinispan-cluster-site1
 oc delete secret -l app=infinispan-helm
 ```
 
