@@ -54,7 +54,7 @@ oc new-project rhdg-ocp-demo
 ```
 # TODO pull cert password out of helm chart
 rm ./tmp-certs-*
-keytool -genkeypair -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./tmp-certs-infinispan.jks -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing,DNS:infinispan-cluster" -keypass changeme -storepass changeme
+keytool -genkeypair -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./tmp-certs-infinispan.jks -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing,DNS:*.rhdg-ocp-demo.svc.cluster.local" -keypass changeme -storepass changeme
 keytool -exportcert  -keystore ./tmp-certs-infinispan.jks -alias infinispan -keypass changeme -storepass changeme -file ./tmp-certs-infinispan.cer
 keytool -import -alias infinispan-cert -file ./tmp-certs-infinispan.cer -storetype JKS -keystore ./tmp-certs-infinispan.jks -noprompt -storepass changeme
 keytool -importkeystore -srckeystore ./tmp-certs-infinispan.jks -srcstorepass changeme -destkeystore ./tmp-certs-keystore.p12 -deststoretype PKCS12 -deststorepass changeme
@@ -153,6 +153,9 @@ oc delete project rhdg-ocp-demo
   - Increase memory config: `crc config set memory 20000`
 - Pods getting evicted
   - Increase the disk space of CRC with `crc config set disk-size 127`
+- Infinispan CR failing to create resources, stuck in "PreliminaryChecksPassed"
+  - Check the Operator pod logs for the error message "route cross-site expose type is not supported"
+  - If you see that error, try deleting the Operator pod so that it is recreated
 - PVC creation failing due to CRC issue preventing PVs from being recycled in OpenShift Local
   - Set the following label: `oc label  --overwrite ns openshift-infra  pod-security.kubernetes.io/enforce=privileged`
   - Manually recycle failed PVs using `oc patch pv/$PV_NAME --type json -p '[{ "op": "remove", "path": "/spec/claimRef" }]'`

@@ -59,7 +59,7 @@ deploy:
               authorization:
                 roles: "authorized-role admin"
       transport:
-        cluster: '${infinispan.cluster.name:infinispan-cluster-site1}'
+        cluster: '${infinispan.cluster.name:infinispan-cluster}'
         node-name: '${infinispan.node.name:}'
         stack: kubernetes
       security:
