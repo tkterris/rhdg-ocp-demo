@@ -12,6 +12,7 @@ The following features are explored in this application:
 - Server Configuration
   - Creating new caches
   - Enabling RBAC / security
+  - Enabling TLS for external cluster traffic
   - Deploying custom code
   - Configuring custom cache loaders
 - Cache functionality
@@ -22,6 +23,7 @@ The following features are explored in this application:
   - Node discovery and clustering
   - Starting and stopping RHDG nodes
   - Scaling the cluster
+  - Cross-Site replication (Operator only)
 
 ### Design
 
@@ -48,25 +50,15 @@ oc login -u developer https://api.crc.testing:6443
 ```
 oc new-project rhdg-ocp-demo
 ```
-- Create an HTTPD server to provide the server JAR, and TLS cert for encrypting connections:
+- As configured, both the Helm chart and the Operator use a custom JAR for loader and marshalling functionality. They also require a Secret for securing exposed endpoints. These prerequisites should be created first.
 ```
 # TODO pull cert password out of helm chart
-# TODO rename to something like "cluster-prerequisites" instead of Server JAR provider
-keytool -genkeypair -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./infinispan.jks -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing" -keypass changeme -storepass changeme
-keytool -exportcert  -keystore ./infinispan.jks -alias infinispan -keypass changeme -storepass changeme -file ./infinispan.cer
-keytool -import -alias infinispan-cert -file ./infinispan.cer -storetype JKS -keystore ./infinispan.jks -noprompt -storepass changeme
-keytool -importkeystore -srckeystore ./infinispan.jks -srcstorepass changeme -destkeystore ./keystore.p12 -deststoretype PKCS12 -deststorepass changeme
-oc process -f ocp-yaml/server-jar-provider.yaml -p BASE64_KEYSTORE=$(base64 -w 0 keystore.p12) | oc create -f -
-```
-- Build and deploy the client application, either within or outside 
-of OCP:
-```
-## In OCP:
-oc process -f ocp-yaml/client-application.yaml | oc create -f -
-```
-```
-## Outside of OCP:
-mvn spring-boot:run 
+rm ./tmp-certs-*
+keytool -genkeypair -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./tmp-certs-infinispan.jks -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing,DNS:infinispan-cluster" -keypass changeme -storepass changeme
+keytool -exportcert  -keystore ./tmp-certs-infinispan.jks -alias infinispan -keypass changeme -storepass changeme -file ./tmp-certs-infinispan.cer
+keytool -import -alias infinispan-cert -file ./tmp-certs-infinispan.cer -storetype JKS -keystore ./tmp-certs-infinispan.jks -noprompt -storepass changeme
+keytool -importkeystore -srckeystore ./tmp-certs-infinispan.jks -srcstorepass changeme -destkeystore ./tmp-certs-keystore.p12 -deststoretype PKCS12 -deststorepass changeme
+oc process -f ocp-yaml/cluster-prerequisites.yaml -p BASE64_KEYSTORE=$(base64 -w 0 ./tmp-certs-keystore.p12) | oc create -f -
 ```
 - Create the Infinispan cluster, either using the Operator or Helm:
 ```
@@ -83,6 +75,19 @@ oc process -f ocp-yaml/operator-resources.yaml -p SITE_NAME_LOCAL=site2 -p SITE_
 oc process -f ocp-yaml/helm-secret.yaml | oc create -f -
 # Install the Helm chart
 helm install infinispan-cluster openshift-helm-charts/redhat-data-grid --values ocp-yaml/helm-values.yaml
+# Note: TLS certs are not yet implemented in the mainly RHDG Helm chart, as of this writing
+# You may need to check out the latest and then run something similar to the following:
+# helm install infinispan-cluster ../infinispan-helm-charts/ --values ocp-yaml/helm-values.yaml
+```
+- Build and deploy the client application, either within or outside 
+of OCP:
+```
+## In OCP:
+oc process -f ocp-yaml/client-application.yaml | oc create -f -
+```
+```
+## Outside of OCP:
+mvn spring-boot:run 
 ```
 
 ### Testing
@@ -108,7 +113,7 @@ use the `invalid.user` and `invalid.password` value from the secret. To test a u
 `unauthorized.user` and `unauthorized.password`.
 
 Cache nodes can be stopped, started, and scaled by changing the `replicas` parameter of the Data Grid operator or upgrading the Helm release 
-with a new `deploy.replicas` parameter. The RHDG admin console can be accessed via an exposed NodePort service at <http://api.crc.testing:31222> 
+with a new `deploy.replicas` parameter. The RHDG admin console can be accessed via an exposed Route at <https://infinispan.rhdg-ocp-demo.apps-crc.testing> 
 (if using CRC), with the username `authorized` and password `Authorized-password!` (the same credentials used by the client application to 
 connect to RHDG). 
 
@@ -117,12 +122,8 @@ connect to RHDG).
 Resources in the project created for the demo can be deleted with these commands:
 
 ```
-# Delete the client application:
-oc delete all,secret -l app=client
-```
-```
-# Delete the HTTPD server for server.jar:
-oc delete all,secret -l app=server-jar-provider
+# Delete the cluster prerequisites
+oc delete all,secret -l app=cluster-prerequisites
 ```
 ```
 # Delete the Infinispan cluster installed via the Operator:
@@ -132,6 +133,10 @@ oc delete all,secret,infinispan,cache -l app=infinispan-operator
 # Delete the Infinispan cluster installed via Helm:
 helm uninstall infinispan-cluster
 oc delete secret -l app=infinispan-helm
+```
+```
+# Delete the client application:
+oc delete all,secret -l app=client
 ```
 
 The entire project can be deleted with:
@@ -168,9 +173,9 @@ There are a number of design decisions that were made so that this POC would be 
 This demo includes instructions on how to connect to RHDG from outside of OCP. This does introduce a few design considerations:
 
 - There are a number ingress methods for connecting to the RHDG cluster, based on design requirements:
-  - [NodePorts](https://docs.openshift.com/container-platform/4.12/networking/configuring_ingress_cluster_traffic/configuring-ingress-cluster-traffic-nodeport.html) (used for this demo)
+  - [NodePorts](https://docs.openshift.com/container-platform/4.12/networking/configuring_ingress_cluster_traffic/configuring-ingress-cluster-traffic-nodeport.html)
   - [LoadBalancers](https://docs.openshift.com/container-platform/4.12/networking/configuring_ingress_cluster_traffic/configuring-ingress-cluster-traffic-load-balancer.html)
-  - [Routes](https://docs.openshift.com/container-platform/4.12/networking/routes/route-configuration.html)
+  - [Routes](https://docs.openshift.com/container-platform/4.12/networking/routes/route-configuration.html) (used for this demo)
     - Note that Hot Rod connections over routes MUST use passthrough encryption, otherwise the connection will be broken with "invalid 
       magic byte" errors. This is because Hot Rod is not an HTTP protocol, and Routes expect unencrypted connections to be HTTP. See 
       [this solution article](https://access.redhat.com/solutions/6134351) for details.

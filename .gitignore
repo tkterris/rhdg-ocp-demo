@@ -2,7 +2,5 @@
 .classpath
 .project
 .settings/
-infinispan.cer
-infinispan.jks
-keystore.p12
+tmp-certs-*
 

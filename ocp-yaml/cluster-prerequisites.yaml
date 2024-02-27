@@ -1,16 +1,16 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: server-jar-provider-template
+  name: cluster-prerequisites-template
   apiVersion: v1
 objects:
 - apiVersion: v1
   kind: Secret
   metadata:
     labels:
-      app: server-jar-provider
-      app.kubernetes.io/component: server-jar-provider
-      app.kubernetes.io/instance: server-jar-provider
+      app: cluster-prerequisites
+      app.kubernetes.io/component: cluster-prerequisites
+      app.kubernetes.io/instance: cluster-prerequisites
     name: tls-secret
   type: Opaque
   stringData:
@@ -22,9 +22,9 @@ objects:
   kind: ImageStream
   metadata:
     labels:
-      app: server-jar-provider
-      app.kubernetes.io/component: server-jar-provider
-      app.kubernetes.io/instance: server-jar-provider
+      app: cluster-prerequisites
+      app.kubernetes.io/component: cluster-prerequisites
+      app.kubernetes.io/instance: cluster-prerequisites
     name: server-jar-provider-artifacts
   spec:
     lookupPolicy:
@@ -33,7 +33,9 @@ objects:
   kind: ImageStream
   metadata:
     labels:
-      app: server-jar-provider
+      app: cluster-prerequisites
+      app.kubernetes.io/component: cluster-prerequisites
+      app.kubernetes.io/instance: cluster-prerequisites
     name: server-jar-provider
   spec:
     lookupPolicy:
@@ -42,9 +44,9 @@ objects:
   kind: BuildConfig
   metadata:
     labels:
-      app: server-jar-provider
-      app.kubernetes.io/component: server-jar-provider
-      app.kubernetes.io/instance: server-jar-provider
+      app: cluster-prerequisites
+      app.kubernetes.io/component: cluster-prerequisites
+      app.kubernetes.io/instance: cluster-prerequisites
     name: server-jar-provider-artifacts
   spec:
     nodeSelector: null
@@ -76,7 +78,9 @@ objects:
   kind: BuildConfig
   metadata:
     labels:
-      app: server-jar-provider
+      app: cluster-prerequisites
+      app.kubernetes.io/component: cluster-prerequisites
+      app.kubernetes.io/instance: cluster-prerequisites
     name: server-jar-provider
   spec:
     output:
@@ -116,9 +120,9 @@ objects:
     annotations:
       image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"server-jar-provider:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"server-jar-provider\")].image"}]'
     labels:
-      app: server-jar-provider
-      app.kubernetes.io/component: server-jar-provider
-      app.kubernetes.io/instance: server-jar-provider
+      app: cluster-prerequisites
+      app.kubernetes.io/component: cluster-prerequisites
+      app.kubernetes.io/instance: cluster-prerequisites
     name: server-jar-provider
   spec:
     replicas: 1
@@ -152,9 +156,9 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: server-jar-provider
-      app.kubernetes.io/component: server-jar-provider
-      app.kubernetes.io/instance: server-jar-provider
+      app: cluster-prerequisites
+      app.kubernetes.io/component: cluster-prerequisites
+      app.kubernetes.io/instance: cluster-prerequisites
     name: server-jar-provider
   spec:
     ports:
