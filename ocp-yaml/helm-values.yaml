@@ -16,8 +16,10 @@ deploy:
       size: 1Gi
     libraries: http://server-jar-provider:8080/server.jar
   expose:
-    type: NodePort
-    nodePort: 31222
+    type: Route
+    host: infinispan.rhdg-ocp-demo.apps-crc.testing
+  ssl:
+    endpointSecretName: tls-secret
   infinispan:
     cacheContainer:
       name: default
@@ -85,6 +87,12 @@ deploy:
       security:
         securityRealms:
           - name: default
+            serverIdentities:
+              ssl:
+                keystore:
+                  path: "/etc/encrypt/endpoint/keystore.p12" 
+                  alias: "infinispan" 
+                  password: "changeme"
             propertiesRealm:
               groupProperties:
                 path: groups.properties

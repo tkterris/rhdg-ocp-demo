@@ -48,6 +48,16 @@ oc login -u developer https://api.crc.testing:6443
 ```
 oc new-project rhdg-ocp-demo
 ```
+- Create an HTTPD server to provide the server JAR, and TLS cert for encrypting connections:
+```
+# TODO pull cert password out of helm chart
+# TODO rename to something like "cluster-prerequisites" instead of Server JAR provider
+keytool -genkeypair -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./infinispan.jks -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing" -keypass changeme -storepass changeme
+keytool -exportcert  -keystore ./infinispan.jks -alias infinispan -keypass changeme -storepass changeme -file ./infinispan.cer
+keytool -import -alias infinispan-cert -file ./infinispan.cer -storetype JKS -keystore ./infinispan.jks -noprompt -storepass changeme
+keytool -importkeystore -srckeystore ./infinispan.jks -srcstorepass changeme -destkeystore ./keystore.p12 -deststoretype PKCS12 -deststorepass changeme
+oc process -f ocp-yaml/server-jar-provider.yaml -p BASE64_KEYSTORE=$(base64 -w 0 keystore.p12) | oc create -f -
+```
 - Build and deploy the client application, either within or outside 
 of OCP:
 ```
@@ -58,17 +68,13 @@ oc process -f ocp-yaml/client-application.yaml | oc create -f -
 ## Outside of OCP:
 mvn spring-boot:run 
 ```
-- Create an HTTPD server to provide the server JAR:
-```
-oc process -f ocp-yaml/server-jar-provider.yaml | oc create -f -
-```
 - Create the Infinispan cluster, either using the Operator or Helm:
 ```
 ## Via the Data Grid Operator:
 
 oc process -f ocp-yaml/operator-resources.yaml | oc create -f -
-# To enable cross-site replication
-oc process -f ocp-yaml/operator-resources.yaml -p CLUSTER_NAME_LOCAL=infinispan-cluster-remote -p SITE_NAME_LOCAL=site2 -p NODE_PORT_LOCAL=31224 -p GOSSIP_PORT_LOCAL=31225 -p CLUSTER_NAME_REMOTE=infinispan-cluster -p SITE_NAME_REMOTE=site1 -p GOSSIP_PORT_REMOTE=31223 | oc create -f -
+# To add a site for cross-site replication
+oc process -f ocp-yaml/operator-resources.yaml -p SITE_NAME_LOCAL=site2 -p SITE_SUFFIX_LOCAL=-site2 -p SITE_NAME_REMOTE=site1 -p SITE_SUFFIX_REMOTE="" | oc create -f -
 ```
 ```
 ## Via Helm:
@@ -116,7 +122,7 @@ oc delete all,secret -l app=client
 ```
 ```
 # Delete the HTTPD server for server.jar:
-oc delete all -l app=server-jar-provider
+oc delete all,secret -l app=server-jar-provider
 ```
 ```
 # Delete the Infinispan cluster installed via the Operator:
@@ -140,11 +146,13 @@ oc delete project rhdg-ocp-demo
 
 - Infinispan cluster failing to start, due to insufficient memory.
   - Increase memory config: `crc config set memory 20000`
-- DNS lookups for routes don't work in browsers with browser-specific DNS (e.g. Brave)
-  - Change browser DNS server to the system-provided DNS server (which contains entries for routes)
+- Pods getting evicted
+  - Increase the disk space of CRC with `crc config set disk-size 127`
 - PVC creation failing due to CRC issue preventing PVs from being recycled in OpenShift Local
   - Set the following label: `oc label  --overwrite ns openshift-infra  pod-security.kubernetes.io/enforce=privileged`
   - Manually recycle failed PVs using `oc patch pv/$PV_NAME --type json -p '[{ "op": "remove", "path": "/spec/claimRef" }]'`
+- DNS lookups for routes don't work in browsers with browser-specific DNS (e.g. Brave)
+  - Change browser DNS server to the system-provided DNS server (which contains entries for routes)
 
 ### Production Considerations
 

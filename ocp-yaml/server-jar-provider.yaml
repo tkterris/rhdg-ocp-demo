@@ -4,6 +4,20 @@ metadata:
   name: server-jar-provider-template
   apiVersion: v1
 objects:
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    labels:
+      app: server-jar-provider
+      app.kubernetes.io/component: server-jar-provider
+      app.kubernetes.io/instance: server-jar-provider
+    name: tls-secret
+  type: Opaque
+  stringData:
+    alias: infinispan
+    password: changeme
+  data:
+    keystore.p12: ${BASE64_KEYSTORE}
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
@@ -154,3 +168,8 @@ objects:
       targetPort: 8443
     selector:
       deployment: server-jar-provider
+parameters:
+  - name: BASE64_KEYSTORE
+    displayName: Base64 encode PKCS12 keystore
+    description: Keystore used for security, encoded with e.g. "base64 -w 0 keystore.p12"
+    required: true

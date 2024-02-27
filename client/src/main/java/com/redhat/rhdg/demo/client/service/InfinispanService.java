@@ -27,6 +27,12 @@ public class InfinispanService {
 	@Value("${infinispan.password}")
 	private String password;
 
+	@Value("${infinispan.trustStore}")
+	private String trustStore;
+
+	@Value("${infinispan.trustStore.password}")
+	private String trustStorePassword;
+
 	@Value("${infinispan.cluster-aware}")
 	private boolean clusterAware;
 
@@ -75,7 +81,8 @@ public class InfinispanService {
 
 		// RHDG cluster connection info
 		builder.addServer().host(host).port(port);
-		builder.security().authentication().username(username).password(password);
+		builder.security().authentication().username(username).password(password)
+		.ssl().enable().trustStoreFileName(trustStore).trustStorePassword(trustStorePassword.toCharArray()).sniHostName(host);
 		if (!clusterAware) {
 			builder.clientIntelligence(ClientIntelligence.BASIC);
 		}
