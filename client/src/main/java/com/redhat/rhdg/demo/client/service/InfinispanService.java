@@ -30,9 +30,6 @@ public class InfinispanService {
 	@Value("${infinispan.trustStore.password}")
 	private String trustStorePassword;
 
-	@Value("${infinispan.trustStore.type}")
-	private String trustStoreType;
-
 	@Value("${infinispan.auth.username}")
 	private String username;
 
@@ -90,7 +87,7 @@ public class InfinispanService {
 		builder.security()
 			.ssl().enable()
 				.trustStoreFileName(trustStore).trustStorePassword(trustStorePassword.toCharArray())
-				.trustStoreType(trustStoreType).sniHostName(host)
+				.sniHostName(host)
 			.authentication().enable()
 				.username(username).password(password);
 		

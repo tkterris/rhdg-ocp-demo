@@ -52,8 +52,8 @@ oc new-project rhdg-ocp-demo
 ```
 - As configured, both the Helm chart and the Operator use a custom JAR for loader and marshalling functionality. They also require a Secret for securing exposed endpoints. These prerequisites should be created first.
 ```
-rm ./tmp-certs-*
-TLS_KEYSTORE_PASSWORD=mySecret
+rm ./tmp-certs-infinispan.*
+export TLS_KEYSTORE_PASSWORD=mySecret
 # Create self-signed key in a PKCS12 keystore, with the password set via TLS_KEYSTORE_PASSWORD
 keytool -genkeypair -storetype PKCS12 -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./tmp-certs-infinispan.p12 -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing,DNS:*.rhdg-ocp-demo.svc.cluster.local" -keypass $TLS_KEYSTORE_PASSWORD -storepass $TLS_KEYSTORE_PASSWORD
 # Export the certificate and reimport it under a different alias, so we can use the same keystore as a truststore
@@ -94,8 +94,8 @@ mvn spring-boot:run
 
 ### Testing
 
-The client application deployed on OpenShift will have a route exposed, or if running locally will be accessible at <http://localhost:8080>. Navigating
-to the root path of the client application (the Route URL in OpenShift or <http://localhost:8080> locally) will redirect to a Swagger UI.
+The client application deployed on OpenShift will have a route exposed, or if running locally will be accessible at <https://localhost:8080>. Navigating
+to the root path of the client application (the Route URL in OpenShift or <https://localhost:8080> locally) will redirect to a Swagger UI.
 
 - Cache connection information can be viewed in the `InfinispanService.java` file in the `client` project
 - Marshalling cache entries is done via Java Serialization (in `serial-cache`, with `SerialController`, 
