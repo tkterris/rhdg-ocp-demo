@@ -21,11 +21,8 @@ public class InfinispanService {
 	@Value("${infinispan.port}")
 	private Integer port;
 
-	@Value("${infinispan.username}")
-	private String username;
-
-	@Value("${infinispan.password}")
-	private String password;
+	@Value("${infinispan.cluster-aware}")
+	private boolean clusterAware;
 
 	@Value("${infinispan.trustStore}")
 	private String trustStore;
@@ -33,8 +30,14 @@ public class InfinispanService {
 	@Value("${infinispan.trustStore.password}")
 	private String trustStorePassword;
 
-	@Value("${infinispan.cluster-aware}")
-	private boolean clusterAware;
+	@Value("${infinispan.trustStore.type}")
+	private String trustStoreType;
+
+	@Value("${infinispan.auth.username}")
+	private String username;
+
+	@Value("${infinispan.auth.password}")
+	private String password;
 
 	private RemoteCacheManager serialRcm;
 
@@ -81,11 +84,15 @@ public class InfinispanService {
 
 		// RHDG cluster connection info
 		builder.addServer().host(host).port(port);
-		builder.security().authentication().username(username).password(password)
-		.ssl().enable().trustStoreFileName(trustStore).trustStorePassword(trustStorePassword.toCharArray()).sniHostName(host);
 		if (!clusterAware) {
 			builder.clientIntelligence(ClientIntelligence.BASIC);
 		}
+		builder.security()
+			.ssl().enable()
+				.trustStoreFileName(trustStore).trustStorePassword(trustStorePassword.toCharArray())
+				.trustStoreType(trustStoreType).sniHostName(host)
+			.authentication().enable()
+				.username(username).password(password);
 		
 		return builder;
 	}

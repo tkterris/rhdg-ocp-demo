@@ -56,10 +56,10 @@ rm ./tmp-certs-*
 TLS_KEYSTORE_PASSWORD=mySecret
 # Create self-signed key in a PKCS12 keystore, with the password set via TLS_KEYSTORE_PASSWORD
 keytool -genkeypair -storetype PKCS12 -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./tmp-certs-infinispan.p12 -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing,DNS:*.rhdg-ocp-demo.svc.cluster.local" -keypass $TLS_KEYSTORE_PASSWORD -storepass $TLS_KEYSTORE_PASSWORD
-# Export the certificate and reimport it, so we can use the same keystore as a truststore
+# Export the certificate and reimport it under a different alias, so we can use the same keystore as a truststore
 keytool -exportcert -rfc -keystore ./tmp-certs-infinispan.p12 -alias infinispan -keypass $TLS_KEYSTORE_PASSWORD -storepass $TLS_KEYSTORE_PASSWORD -file ./tmp-certs-infinispan.pem
 keytool -import -alias infinispan-cert -file ./tmp-certs-infinispan.pem -storetype PKCS12 -keystore ./tmp-certs-infinispan.p12 -noprompt -storepass $TLS_KEYSTORE_PASSWORD
-# Apply the template creating the keystore Secret and the server JAR provider
+# Apply the template, creating the keystore Secret and the server JAR provider
 oc process -f ocp-yaml/cluster-prerequisites.yaml -p TLS_KEYSTORE=$(base64 -w 0 ./tmp-certs-infinispan.p12) -p TLS_KEYSTORE_PASSWORD=$TLS_KEYSTORE_PASSWORD | oc create -f -
 ```
 - Create the Infinispan cluster, either using the Operator or Helm:
@@ -84,11 +84,11 @@ helm install infinispan-cluster openshift-helm-charts/redhat-data-grid --values 
 - Build and deploy the client application, either within or outside 
 of OCP:
 ```
-## In OCP:
+## In OCP (uses the "openshift" Spring profile):
 oc process -f ocp-yaml/client-application.yaml | oc create -f -
 ```
 ```
-## Outside of OCP:
+## Outside of OCP (uses the "local" Spring profile):
 mvn spring-boot:run 
 ```
 
@@ -109,6 +109,7 @@ to the root path of the client application (the Route URL in OpenShift or <http:
 - If a `GET /proto/{key}` is performed on a key that hasn't been stored, the custom cache loader is used to retrieve a value using the key (in this example, just by calculating the hash of the key)
 - A simple remote task can be executed via the `POST /proto/removeTask/{key}` endpoint
 - Querying by value can be tested via the `GET /proto/query/{queryText}` endpoint
+- Cross-Site Replication can be tested with the Operator by adding data with the client, then changing `infinispan.host` property (via the `INFINISPAN_HOST` environment variable) to the other site and confirming that the data exists there.
 
 To test with a user that fails authentication, change `INFINISPAN_USER` and `INFINISPAN_PASSWORD` in the deployment environment variables to 
 use the `invalid.user` and `invalid.password` value from the secret. To test a user that authenticates but is unauthorized, use

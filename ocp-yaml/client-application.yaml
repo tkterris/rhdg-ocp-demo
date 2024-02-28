@@ -99,6 +99,8 @@ objects:
           - containerPort: 8443
             protocol: TCP
           env:
+          - name: ACTIVE_PROFILE
+            value: openshift
           - name: INFINISPAN_USERNAME
             valueFrom:
               secretKeyRef:
@@ -109,8 +111,6 @@ objects:
               secretKeyRef:
                 name: client-secret
                 key: authorized.password
-          - name: INFINISPAN_CLUSTER_AWARE
-            value: 'true'
           - name: INFINISPAN_HOST
             # We could just use "infinispan-cluster" here, but the cert has
             # the SAN set to "*.rhdg-ocp-demo.svc.cluster.local" 
