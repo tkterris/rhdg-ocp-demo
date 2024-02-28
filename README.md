@@ -54,11 +54,13 @@ oc new-project rhdg-ocp-demo
 ```
 rm ./tmp-certs-*
 TLS_KEYSTORE_PASSWORD=mySecret
-keytool -genkeypair -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./tmp-certs-infinispan.jks -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing,DNS:*.rhdg-ocp-demo.svc.cluster.local" -keypass $TLS_KEYSTORE_PASSWORD -storepass $TLS_KEYSTORE_PASSWORD
-keytool -exportcert  -keystore ./tmp-certs-infinispan.jks -alias infinispan -keypass $TLS_KEYSTORE_PASSWORD -storepass $TLS_KEYSTORE_PASSWORD -file ./tmp-certs-infinispan.cer
-keytool -import -alias infinispan-cert -file ./tmp-certs-infinispan.cer -storetype JKS -keystore ./tmp-certs-infinispan.jks -noprompt -storepass $TLS_KEYSTORE_PASSWORD
-keytool -importkeystore -srckeystore ./tmp-certs-infinispan.jks -srcstorepass $TLS_KEYSTORE_PASSWORD -destkeystore ./tmp-certs-keystore.p12 -deststoretype PKCS12 -deststorepass $TLS_KEYSTORE_PASSWORD
-oc process -f ocp-yaml/cluster-prerequisites.yaml -p TLS_KEYSTORE=$(base64 -w 0 ./tmp-certs-keystore.p12) -p TLS_KEYSTORE_PASSWORD=$TLS_KEYSTORE_PASSWORD | oc create -f -
+# Create self-signed key in a PKCS12 keystore, with the password set via TLS_KEYSTORE_PASSWORD
+keytool -genkeypair -storetype PKCS12 -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./tmp-certs-infinispan.p12 -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing,DNS:*.rhdg-ocp-demo.svc.cluster.local" -keypass $TLS_KEYSTORE_PASSWORD -storepass $TLS_KEYSTORE_PASSWORD
+# Export the certificate and reimport it, so we can use the same keystore as a truststore
+keytool -exportcert -rfc -keystore ./tmp-certs-infinispan.p12 -alias infinispan -keypass $TLS_KEYSTORE_PASSWORD -storepass $TLS_KEYSTORE_PASSWORD -file ./tmp-certs-infinispan.pem
+keytool -import -alias infinispan-cert -file ./tmp-certs-infinispan.pem -storetype PKCS12 -keystore ./tmp-certs-infinispan.p12 -noprompt -storepass $TLS_KEYSTORE_PASSWORD
+# Apply the template creating the keystore Secret and the server JAR provider
+oc process -f ocp-yaml/cluster-prerequisites.yaml -p TLS_KEYSTORE=$(base64 -w 0 ./tmp-certs-infinispan.p12) -p TLS_KEYSTORE_PASSWORD=$TLS_KEYSTORE_PASSWORD | oc create -f -
 ```
 - Create the Infinispan cluster, either using the Operator or Helm:
 ```
