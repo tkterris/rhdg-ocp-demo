@@ -15,9 +15,9 @@ objects:
   type: Opaque
   stringData:
     alias: infinispan
-    password: changeme
+    password: ${TLS_KEYSTORE_PASSWORD}
   data:
-    keystore.p12: ${BASE64_KEYSTORE}
+    keystore.p12: ${TLS_KEYSTORE}
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
@@ -173,7 +173,10 @@ objects:
     selector:
       deployment: server-jar-provider
 parameters:
-  - name: BASE64_KEYSTORE
+  - name: TLS_KEYSTORE
     displayName: Base64 encode PKCS12 keystore
     description: Keystore used for security, encoded with e.g. "base64 -w 0 keystore.p12"
+    required: true
+  - name: TLS_KEYSTORE_PASSWORD
+    displayName: Password for the TLS keystore
     required: true

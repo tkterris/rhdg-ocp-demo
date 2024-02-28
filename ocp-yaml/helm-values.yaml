@@ -11,6 +11,12 @@ deploy:
       requests:
         cpu: 500m
         memory: 512Mi
+    env:
+      - name: TLS_KEYSTORE_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: tls-secret
+            key: password
     storage:
       ephemeral: true
       size: 1Gi
@@ -91,8 +97,8 @@ deploy:
               ssl:
                 keystore:
                   path: "/etc/encrypt/endpoint/keystore.p12" 
-                  alias: "infinispan" 
-                  password: "changeme"
+                  alias: "infinispan"
+                  password: "${env.TLS_KEYSTORE_PASSWORD}"
             propertiesRealm:
               groupProperties:
                 path: groups.properties

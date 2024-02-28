@@ -52,13 +52,13 @@ oc new-project rhdg-ocp-demo
 ```
 - As configured, both the Helm chart and the Operator use a custom JAR for loader and marshalling functionality. They also require a Secret for securing exposed endpoints. These prerequisites should be created first.
 ```
-# TODO pull cert password out of helm chart
 rm ./tmp-certs-*
-keytool -genkeypair -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./tmp-certs-infinispan.jks -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing,DNS:*.rhdg-ocp-demo.svc.cluster.local" -keypass changeme -storepass changeme
-keytool -exportcert  -keystore ./tmp-certs-infinispan.jks -alias infinispan -keypass changeme -storepass changeme -file ./tmp-certs-infinispan.cer
-keytool -import -alias infinispan-cert -file ./tmp-certs-infinispan.cer -storetype JKS -keystore ./tmp-certs-infinispan.jks -noprompt -storepass changeme
-keytool -importkeystore -srckeystore ./tmp-certs-infinispan.jks -srcstorepass changeme -destkeystore ./tmp-certs-keystore.p12 -deststoretype PKCS12 -deststorepass changeme
-oc process -f ocp-yaml/cluster-prerequisites.yaml -p BASE64_KEYSTORE=$(base64 -w 0 ./tmp-certs-keystore.p12) | oc create -f -
+TLS_KEYSTORE_PASSWORD=mySecret
+keytool -genkeypair -alias infinispan -keyalg RSA -keysize 4096 -validity 365 -keystore ./tmp-certs-infinispan.jks -dname "CN=rhdg-ocp-demo" -ext "SAN=DNS:*.rhdg-ocp-demo.apps-crc.testing,DNS:*.rhdg-ocp-demo.svc.cluster.local" -keypass $TLS_KEYSTORE_PASSWORD -storepass $TLS_KEYSTORE_PASSWORD
+keytool -exportcert  -keystore ./tmp-certs-infinispan.jks -alias infinispan -keypass $TLS_KEYSTORE_PASSWORD -storepass $TLS_KEYSTORE_PASSWORD -file ./tmp-certs-infinispan.cer
+keytool -import -alias infinispan-cert -file ./tmp-certs-infinispan.cer -storetype JKS -keystore ./tmp-certs-infinispan.jks -noprompt -storepass $TLS_KEYSTORE_PASSWORD
+keytool -importkeystore -srckeystore ./tmp-certs-infinispan.jks -srcstorepass $TLS_KEYSTORE_PASSWORD -destkeystore ./tmp-certs-keystore.p12 -deststoretype PKCS12 -deststorepass $TLS_KEYSTORE_PASSWORD
+oc process -f ocp-yaml/cluster-prerequisites.yaml -p TLS_KEYSTORE=$(base64 -w 0 ./tmp-certs-keystore.p12) -p TLS_KEYSTORE_PASSWORD=$TLS_KEYSTORE_PASSWORD | oc create -f -
 ```
 - Create the Infinispan cluster, either using the Operator or Helm:
 ```

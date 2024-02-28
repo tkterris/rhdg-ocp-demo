@@ -111,9 +111,9 @@ objects:
                 key: authorized.password
           - name: INFINISPAN_CLUSTER_AWARE
             value: 'true'
+          - name: INFINISPAN_HOST
             # We could just use "infinispan-cluster" here, but the cert has
             # the SAN set to "*.rhdg-ocp-demo.svc.cluster.local" 
-          - name: INFINISPAN_HOST
             value: "infinispan-cluster.rhdg-ocp-demo.svc.cluster.local"
           - name: INFINISPAN_PORT
             value: '11222'
