@@ -37,7 +37,12 @@ This demo consists of three parts:
 
 ### Prerequisites
 
-- Access to an OpenShift cluster (for local testing, [OpenShift Local](https://developers.redhat.com/products/openshift-local/overview) is recommended)
+- Access to an OpenShift cluster. For local testing, [OpenShift Local](https://developers.redhat.com/products/openshift-local/overview) is recommended. If you're using OpenShift Local, run the following commands before starting the cluster:
+```
+crc config set cpus 4
+crc config set memory 20000
+crc config set disk-size 127
+```
 - The Data Grid Operator is installed
 - Helm is installed and the chart repository at <https://charts.openshift.io/> has been added: `helm repo add openshift-helm-charts https://charts.openshift.io/`
 
@@ -152,10 +157,6 @@ oc delete project rhdg-ocp-demo
 
 ### Debugging
 
-- Infinispan cluster failing to start, due to insufficient memory.
-  - Increase memory config: `crc config set memory 20000`
-- Pods getting evicted
-  - Increase the disk space of CRC with `crc config set disk-size 127`
 - Infinispan CR failing to create resources, stuck in "PreliminaryChecksPassed"
   - Check the Operator pod logs for the error message "route cross-site expose type is not supported"
   - If you see that error, try deleting the Operator pod so that it is recreated
